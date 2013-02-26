@@ -38,6 +38,7 @@ public class TemplateUtils {
 			String implementationName = iterator.next();
 			AbstractProject project = ProjectUtils.findProject(implementationName);
 			if (project == null) {
+				LOG.warning(implementationName + " doesn't exist as a project. Cleaning it out of the template.");
 				changedTemplateProject = true;
 				iterator.remove();
 				continue;
