@@ -9,8 +9,8 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * User: Joel Johnson
@@ -42,7 +42,7 @@ public class TemplateProperty extends JobProperty<AbstractProject<?,?>> {
 		@Override
 		public JobProperty<?> newInstance(StaplerRequest request, JSONObject formData) throws FormException {
 			if(formData.size() > 0) {
-				Set<String> implementationJobs = new HashSet<String>();
+				Set<String> implementationJobs = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
 				AbstractProject thisProject = ProjectUtils.findProject(request);
 				if(thisProject != null) {
