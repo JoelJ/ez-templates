@@ -6,13 +6,10 @@ import hudson.model.AbstractProject;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
 import net.sf.json.JSONObject;
-import org.kohsuke.stapler.Ancestor;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -30,6 +27,14 @@ public class TemplateProperty extends JobProperty<AbstractProject<?,?>> {
 
 	public Set<String> getImplementations() {
 		return implementations;
+	}
+
+	public void addImplementation(String projectName) {
+		implementations.add(projectName);
+	}
+
+	public void removeImplementation(String projectName) {
+		implementations.remove(projectName);
 	}
 
 	@Extension
