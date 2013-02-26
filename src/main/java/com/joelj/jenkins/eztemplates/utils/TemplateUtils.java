@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,6 +30,27 @@ public class TemplateUtils {
 
 	public static void handleTemplate(AbstractProject templateProject, TemplateProperty property) throws IOException {
 		LOG.info("Template " + templateProject.getDisplayName() + " was saved. Syncing implementations. " + property);
+		Set<String> implementations = property.getImplementations();
+
+		Iterator<String> iterator = implementations.iterator();
+		boolean changedTemplateProject = false;
+		while (iterator.hasNext()) {
+			String implementationName = iterator.next();
+			AbstractProject project = ProjectUtils.findProject(implementationName);
+			if (project == null) {
+				changedTemplateProject = true;
+				iterator.remove();
+				continue;
+			}
+
+			@SuppressWarnings("unchecked")
+			TemplateImplementationProperty impProperty = (TemplateImplementationProperty) project.getProperty(TemplateImplementationProperty.class);
+			handleImplementation(project, impProperty);
+		}
+
+		if(changedTemplateProject) {
+			ProjectUtils.silentSave(templateProject);
+		}
 	}
 
 	public static void handleImplementation(AbstractProject implementationProject, TemplateImplementationProperty property) throws IOException {
