@@ -9,8 +9,10 @@ import org.kohsuke.stapler.Ancestor;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * User: Joel Johnson
@@ -18,14 +20,14 @@ import java.util.List;
  * Time: 10:11 PM
  */
 public class TemplateProperty extends JobProperty<AbstractProject<?,?>> {
-	private final List<String> implementations;
+	private final Set<String> implementations;
 
 	@DataBoundConstructor
-	public TemplateProperty(List<String> implementations) {
+	public TemplateProperty(Set<String> implementations) {
 		this.implementations = implementations;
 	}
 
-	public List<String> getImplementations() {
+	public Set<String> getImplementations() {
 		return implementations;
 	}
 
@@ -34,7 +36,7 @@ public class TemplateProperty extends JobProperty<AbstractProject<?,?>> {
 		@Override
 		public JobProperty<?> newInstance(StaplerRequest req, JSONObject formData) throws FormException {
 			if(formData.size() > 0) {
-				List<String> implementationJobs = new LinkedList<String>();
+				Set<String> implementationJobs = new HashSet<String>();
 				Ancestor ancestor = req.getAncestors().get(req.getAncestors().size() - 1);
 				while(ancestor != null && !(ancestor.getObject() instanceof AbstractProject)) {
 					ancestor = ancestor.getPrev();
@@ -47,7 +49,7 @@ public class TemplateProperty extends JobProperty<AbstractProject<?,?>> {
 					TemplateProperty property = (TemplateProperty) thisProject.getProperty(TemplateProperty.class);
 
 					if(property != null) {
-						List<String> oldImplementationList = property.getImplementations();
+						Set<String> oldImplementationList = property.getImplementations();
 						implementationJobs.addAll(oldImplementationList);
 					}
 				}
