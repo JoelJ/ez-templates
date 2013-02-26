@@ -50,12 +50,13 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 				if(templateJob != null) {
 					@SuppressWarnings("unchecked")
 					TemplateProperty property = (TemplateProperty) templateJob.getProperty(TemplateProperty.class);
-					property.addImplementation(thisProjectName);
 
-					try {
-						ProjectUtils.silentSave(templateJob);
-					} catch (IOException e) {
-						throw new FormException(e, "templateJobName");
+					if(property != null && property.addImplementation(thisProjectName)) {
+						try {
+							ProjectUtils.silentSave(templateJob);
+						} catch (IOException e) {
+							throw new FormException(e, "templateJobName");
+						}
 					}
 				}
 				return new TemplateImplementationProperty(templateJobName);
@@ -69,12 +70,13 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 					if(templateJob != null) {
 						@SuppressWarnings("unchecked")
 						TemplateProperty property = (TemplateProperty) templateJob.getProperty(TemplateProperty.class);
-						property.removeImplementation(thisProjectName);
 
-						try {
-							ProjectUtils.silentSave(templateJob);
-						} catch (IOException e) {
-							throw new FormException(e, "templateJobName");
+						if(property != null && property.removeImplementation(thisProjectName)) {
+							try {
+								ProjectUtils.silentSave(templateJob);
+							} catch (IOException e) {
+								throw new FormException(e, "templateJobName");
+							}
 						}
 					} else {
 						LOG.warning(thisProjectName + " used to implement template " + oldTemplateImplementationProperty.getTemplateJobName() + " but that project cannot be found so we can't unregister this implementation.");

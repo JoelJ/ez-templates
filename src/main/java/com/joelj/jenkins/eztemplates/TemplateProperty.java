@@ -29,12 +29,12 @@ public class TemplateProperty extends JobProperty<AbstractProject<?,?>> {
 		return implementations;
 	}
 
-	public void addImplementation(String projectName) {
-		implementations.add(projectName);
+	public boolean addImplementation(String projectName) {
+		return implementations.add(projectName);
 	}
 
-	public void removeImplementation(String projectName) {
-		implementations.remove(projectName);
+	public boolean removeImplementation(String projectName) {
+		return implementations.remove(projectName);
 	}
 
 	@Extension
