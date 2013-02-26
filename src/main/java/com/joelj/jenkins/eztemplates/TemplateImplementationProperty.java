@@ -10,6 +10,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 /**
@@ -50,6 +51,12 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 					@SuppressWarnings("unchecked")
 					TemplateProperty property = (TemplateProperty) templateJob.getProperty(TemplateProperty.class);
 					property.addImplementation(thisProjectName);
+
+					try {
+						ProjectUtils.silentSave(templateJob);
+					} catch (IOException e) {
+						throw new FormException(e, "templateJobName");
+					}
 				}
 				return new TemplateImplementationProperty(templateJobName);
 			} else {
@@ -63,6 +70,12 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 						@SuppressWarnings("unchecked")
 						TemplateProperty property = (TemplateProperty) templateJob.getProperty(TemplateProperty.class);
 						property.removeImplementation(thisProjectName);
+
+						try {
+							ProjectUtils.silentSave(templateJob);
+						} catch (IOException e) {
+							throw new FormException(e, "templateJobName");
+						}
 					} else {
 						LOG.warning(thisProjectName + " used to implement template " + oldTemplateImplementationProperty.getTemplateJobName() + " but that project cannot be found so we can't unregister this implementation.");
 					}
