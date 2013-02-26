@@ -47,16 +47,17 @@ public class TemplateUtils {
 		ProjectUtils.silentSave(implementationProject);
 	}
 
-	@SuppressWarnings("unchecked")
 	private static void fixParameters(AbstractProject implementationProject, List<ParameterDefinition> oldImplementationParameters) throws IOException {
 		List<ParameterDefinition> newImplementationParameters = findParameters(implementationProject);
 
 		ParametersDefinitionProperty newParameterAction = findParametersToKeep(oldImplementationParameters, newImplementationParameters);
-		ParametersDefinitionProperty toRemove = (ParametersDefinitionProperty) implementationProject.getProperty(ParametersDefinitionProperty.class);
+		@SuppressWarnings("unchecked") ParametersDefinitionProperty toRemove = (ParametersDefinitionProperty) implementationProject.getProperty(ParametersDefinitionProperty.class);
 		if (toRemove != null) {
+			//noinspection unchecked
 			implementationProject.removeProperty(toRemove);
 		}
 		if (newParameterAction != null) {
+			//noinspection unchecked
 			implementationProject.addProperty(newParameterAction);
 		}
 	}
@@ -102,9 +103,9 @@ public class TemplateUtils {
 		return implementationProject;
 	}
 
-	@SuppressWarnings("unchecked")
 	private static List<ParameterDefinition> findParameters(AbstractProject implementationProject) {
 		List<ParameterDefinition> definitions = new LinkedList<ParameterDefinition>();
+		@SuppressWarnings("unchecked")
 		ParametersDefinitionProperty parametersDefinitionProperty = (ParametersDefinitionProperty) implementationProject.getProperty(ParametersDefinitionProperty.class);
 		if(parametersDefinitionProperty != null) {
 			for (String parameterName : parametersDefinitionProperty.getParameterDefinitionNames()) {
@@ -114,10 +115,12 @@ public class TemplateUtils {
 		return definitions;
 	}
 
-	@SuppressWarnings("unchecked")
 	private static void fixProperties(AbstractProject implementationProject, TemplateImplementationProperty property, boolean implementationIsTemplate) throws IOException {
+		//noinspection unchecked
 		implementationProject.addProperty(property);
+
 		if (!implementationIsTemplate) {
+			//noinspection unchecked
 			implementationProject.removeProperty(TemplateProperty.class);
 		}
 	}
