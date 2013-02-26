@@ -78,20 +78,4 @@ public class ProjectUtils {
 			out.abort(); // don't leave anything behind
 		}
 	}
-
-	/**
-	 * The abstract project returns an unmodifiable collection.
-	 */
-	@SuppressWarnings("unchecked")
-	public static List<Action> getActions(AbstractProject project) {
-		try {
-			Field actions = Actionable.class.getField("actions");
-			actions.setAccessible(true);
-			return (List<Action>) actions.get(project);
-		} catch (NoSuchFieldException e) {
-			throw new RuntimeException(e);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-	}
 }
