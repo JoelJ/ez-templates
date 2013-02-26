@@ -10,12 +10,16 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 
+import java.util.logging.Logger;
+
 /**
  * User: Joel Johnson
  * Date: 2/25/13
  * Time: 10:11 PM
  */
 public class TemplateImplementationProperty extends JobProperty<AbstractProject<?,?>> {
+	private static final Logger LOG = Logger.getLogger("ez-templates");
+
 	private final String templateJobName;
 
 	@DataBoundConstructor
@@ -35,9 +39,34 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 	@Extension
 	public static class DescriptorImpl extends JobPropertyDescriptor {
 		@Override
-		public JobProperty<?> newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+		public JobProperty<?> newInstance(StaplerRequest request, JSONObject formData) throws FormException {
+			AbstractProject thisProject = ProjectUtils.findProject(request);
+			String thisProjectName = thisProject.getName();
+
 			if(formData.size() > 0 && formData.has("useTemplate")) {
-				return new TemplateImplementationProperty(formData.getJSONObject("useTemplate").getString("templateJobName"));
+				String templateJobName = formData.getJSONObject("useTemplate").getString("templateJobName");
+				AbstractProject templateJob = ProjectUtils.findProject(templateJobName);
+				if(templateJob != null) {
+					@SuppressWarnings("unchecked")
+					TemplateProperty property = (TemplateProperty) templateJob.getProperty(TemplateProperty.class);
+					property.addImplementation(thisProjectName);
+				}
+				return new TemplateImplementationProperty(templateJobName);
+			} else {
+				@SuppressWarnings("unchecked")
+				TemplateImplementationProperty oldTemplateImplementationProperty = (TemplateImplementationProperty) thisProject.getProperty(TemplateImplementationProperty.class);
+				if(oldTemplateImplementationProperty != null) {
+					LOG.info(thisProjectName + "No longer implementing template: " + oldTemplateImplementationProperty.getTemplateJobName());
+					//TemplateImplementationProperty was just removed. So notify the template.
+					AbstractProject templateJob = oldTemplateImplementationProperty.findProject();
+					if(templateJob != null) {
+						@SuppressWarnings("unchecked")
+						TemplateProperty property = (TemplateProperty) templateJob.getProperty(TemplateProperty.class);
+						property.removeImplementation(thisProjectName);
+					} else {
+						LOG.warning(thisProjectName + " used to implement template " + oldTemplateImplementationProperty.getTemplateJobName() + " but that project cannot be found so we can't unregister this implementation.");
+					}
+				}
 			}
 			return null;
 		}
