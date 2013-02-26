@@ -1,5 +1,6 @@
 package com.joelj.jenkins.eztemplates;
 
+import com.joelj.jenkins.eztemplates.utils.ProjectUtils;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.JobProperty;
@@ -34,17 +35,12 @@ public class TemplateProperty extends JobProperty<AbstractProject<?,?>> {
 	@Extension
 	public static class DescriptorImpl extends JobPropertyDescriptor {
 		@Override
-		public JobProperty<?> newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+		public JobProperty<?> newInstance(StaplerRequest request, JSONObject formData) throws FormException {
 			if(formData.size() > 0) {
 				Set<String> implementationJobs = new HashSet<String>();
-				Ancestor ancestor = req.getAncestors().get(req.getAncestors().size() - 1);
-				while(ancestor != null && !(ancestor.getObject() instanceof AbstractProject)) {
-					ancestor = ancestor.getPrev();
-				}
 
-				if(ancestor != null) {
-					AbstractProject thisProject = (AbstractProject) ancestor.getObject();
-
+				AbstractProject thisProject = ProjectUtils.findProject(request);
+				if(thisProject != null) {
 					@SuppressWarnings("unchecked")
 					TemplateProperty property = (TemplateProperty) thisProject.getProperty(TemplateProperty.class);
 

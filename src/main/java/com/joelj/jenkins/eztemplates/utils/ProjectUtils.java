@@ -6,6 +6,8 @@ import hudson.model.Items;
 import hudson.util.AtomicFileWriter;
 import hudson.util.IOException2;
 import jenkins.model.Jenkins;
+import org.kohsuke.stapler.Ancestor;
+import org.kohsuke.stapler.StaplerRequest;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -21,6 +23,17 @@ import java.util.List;
  * Time: 11:49 PM
  */
 public class ProjectUtils {
+	public static AbstractProject findProject(StaplerRequest request) {
+		Ancestor ancestor = request.getAncestors().get(request.getAncestors().size() - 1);
+		while(ancestor != null && !(ancestor.getObject() instanceof AbstractProject)) {
+			ancestor = ancestor.getPrev();
+		}
+		if(ancestor == null) {
+			return null;
+		}
+		return (AbstractProject) ancestor.getObject();
+	}
+
 	public static AbstractProject findProject(String name) {
 		List<AbstractProject> projects = Jenkins.getInstance().getAllItems(AbstractProject.class);
 		for (AbstractProject project : projects) {
