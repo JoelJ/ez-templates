@@ -81,7 +81,7 @@ public class TemplateUtils {
 			}
 		}
 
-		if(LOG.isLoggable(Level.INFO)) {
+		if(LOG.isLoggable(Level.INFO) && oldImplementationParameters != null && oldImplementationParameters.size() > 0) {
 			LOG.info("Throwing away parameters: ");
 			for (ParameterDefinition newImplementationParameter : oldImplementationParameters) {
 				LOG.info("\t"+newImplementationParameter.toString());
