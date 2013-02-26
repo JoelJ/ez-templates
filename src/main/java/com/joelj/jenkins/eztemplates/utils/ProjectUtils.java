@@ -2,8 +2,6 @@ package com.joelj.jenkins.eztemplates.utils;
 
 import hudson.XmlFile;
 import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.Actionable;
 import hudson.model.Items;
 import hudson.util.AtomicFileWriter;
 import hudson.util.IOException2;
@@ -15,7 +13,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.List;
 
 /**

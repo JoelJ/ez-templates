@@ -2,14 +2,13 @@ package com.joelj.jenkins.eztemplates;
 
 import com.joelj.jenkins.eztemplates.utils.ProjectUtils;
 import hudson.Extension;
-import hudson.model.*;
-import jenkins.model.Jenkins;
+import hudson.model.AbstractProject;
+import hudson.model.JobProperty;
+import hudson.model.JobPropertyDescriptor;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
-
-import java.util.List;
 
 /**
  * User: Joel Johnson
