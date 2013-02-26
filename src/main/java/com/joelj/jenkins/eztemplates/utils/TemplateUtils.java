@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 
 /**
  * This is where all the magic really happens.
- * The templates and implementations, when they're change call one of the two public handle* methods.
+ * The templates and implementations, when they change, call one of the two public handle* methods.
  * <p/>
  * User: Joel Johnson
  * Date: 2/25/13
