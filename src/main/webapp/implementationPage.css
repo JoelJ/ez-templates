@@ -1,0 +1,11 @@
+/*form.disabled>table>tbody>tr {*/
+	/*visibility: collapse;*/
+	/*display: block;*/
+	/*height: 0;*/
+	/*width: 0;*/
+/*}*/
+/**/
+/*form.disabled>table>tbody>tr.enabled {*/
+	/*visibility: visible;*/
+	/*display: table-row;*/
+/*}*/
