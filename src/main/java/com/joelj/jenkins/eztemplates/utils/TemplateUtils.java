@@ -74,7 +74,10 @@ public class TemplateUtils {
 		fixParameters(implementationProject, oldImplementationParameters);
 		fixBuildTriggers(implementationProject, oldTriggers);
 		ReflectionUtils.setFieldValue(AbstractProject.class, implementationProject, "disabled", shouldBeDisabled);
-		ReflectionUtils.setFieldValue(AbstractItem.class, implementationProject, "description", description);
+
+		if(description != null) {
+			ReflectionUtils.setFieldValue(AbstractItem.class, implementationProject, "description", description);
+		}
 
 		ProjectUtils.silentSave(implementationProject);
 	}
