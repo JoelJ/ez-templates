@@ -1,5 +1,11 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+	<div id="templateImplementationWarning">
+		This job is implementing a template.
+		You can change the name, description, build triggers, and whether or not the build is enabled.
+		<b>All other fields will be overwritten with the template's configuration.</b>
+	</div>
+	<link rel="stylesheet" type="text/css" href="${rootURL}/plugin/ez-templates/implementationPage.css"/>
 	<f:optionalBlock name="beTemplate" title="${%Allow this job to be used as a template}" checked="${instance != null}">
 		<f:entry>
 			<h3>${%Jobs implementing this template}</h3>
@@ -12,4 +18,5 @@
 			</ul>
 		</f:entry>
 	</f:optionalBlock>
+	<script src="${rootURL}/plugin/ez-templates/implementationPage.js"><!--empty--></script>
 </j:jelly>

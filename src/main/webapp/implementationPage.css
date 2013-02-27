@@ -1,11 +1,17 @@
-/*form.disabled>table>tbody>tr {*/
-	/*visibility: collapse;*/
-	/*display: block;*/
-	/*height: 0;*/
-	/*width: 0;*/
-/*}*/
-/**/
-/*form.disabled>table>tbody>tr.enabled {*/
-	/*visibility: visible;*/
-	/*display: table-row;*/
-/*}*/
+#templateImplementationWarning {
+	background-color: #CC3333;
+	border: 1px solid black;
+	border-radius: 5px;
+	bottom: 10px;
+	color: white;
+	display: none;
+	left: 10px;
+	opacity: .85;
+	padding: 10px;
+	position: fixed;
+	width: 248px;
+}
+
+#templateImplementationWarning.show {
+	display: inline-block;
+}
