@@ -3,6 +3,9 @@ package com.joelj.jenkins.eztemplates.utils;
 import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
 import com.joelj.jenkins.eztemplates.TemplateProperty;
 import hudson.model.*;
+import hudson.triggers.Trigger;
+import hudson.triggers.TriggerDescriptor;
+import hudson.util.CopyOnWriteList;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -10,10 +13,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,16 +58,42 @@ public class TemplateUtils {
 		LOG.info("Implementation " + implementationProject.getDisplayName() + " was saved. Syncing with " + property.getTemplateJobName());
 		AbstractProject templateProject = property.findProject();
 
+		//Capture values we want to keep
 		@SuppressWarnings("unchecked")
 		boolean implementationIsTemplate = implementationProject.getProperty(TemplateProperty.class) != null;
 		List<ParameterDefinition> oldImplementationParameters = findParameters(implementationProject);
+		@SuppressWarnings("unchecked")
+		Map<TriggerDescriptor,Trigger> oldTriggers = implementationProject.getTriggers();
+		boolean shouldBeDisabled = implementationProject.isDisabled();
+		String description = implementationProject.getDescription();
 
 		implementationProject = synchronizeConfigFiles(implementationProject, templateProject);
 
+		//Set values that we wanted to keep via reflection to prevent infinite save recursion
 		fixProperties(implementationProject, property, implementationIsTemplate);
 		fixParameters(implementationProject, oldImplementationParameters);
+		fixBuildTriggers(implementationProject, oldTriggers);
+		ReflectionUtils.setFieldValue(AbstractProject.class, implementationProject, "disabled", shouldBeDisabled);
+		ReflectionUtils.setFieldValue(AbstractItem.class, implementationProject, "description", description);
 
 		ProjectUtils.silentSave(implementationProject);
+	}
+
+	private static void fixBuildTriggers(AbstractProject implementationProject, Map<TriggerDescriptor, Trigger> oldTriggers) {
+		List<Trigger<?>> triggersToReplace = ProjectUtils.getTriggers(implementationProject);
+		if(triggersToReplace == null) {
+			throw new NullPointerException("triggersToReplace");
+		}
+
+		if(!triggersToReplace.isEmpty() || !oldTriggers.isEmpty()) {
+			//noinspection SynchronizationOnLocalVariableOrMethodParameter
+			synchronized (triggersToReplace) {
+				triggersToReplace.clear();
+				for (Trigger trigger : oldTriggers.values()) {
+					triggersToReplace.add(trigger);
+				}
+			}
+		}
 	}
 
 	private static void fixParameters(AbstractProject implementationProject, List<ParameterDefinition> oldImplementationParameters) throws IOException {
@@ -139,12 +165,15 @@ public class TemplateUtils {
 	}
 
 	private static void fixProperties(AbstractProject implementationProject, TemplateImplementationProperty property, boolean implementationIsTemplate) throws IOException {
-		//noinspection unchecked
-		implementationProject.addProperty(property);
+		CopyOnWriteList<JobProperty<?>> properties = ReflectionUtils.getFieldValue(Job.class, implementationProject, "properties");
+		properties.add(property);
 
-		if (!implementationIsTemplate) {
-			//noinspection unchecked
-			implementationProject.removeProperty(TemplateProperty.class);
+		if(!implementationIsTemplate) {
+			for (JobProperty<?> jobProperty : properties) {
+				if(jobProperty instanceof TemplateProperty) {
+					properties.remove(jobProperty);
+				}
+			}
 		}
 	}
 }

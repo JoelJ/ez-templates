@@ -3,6 +3,7 @@ package com.joelj.jenkins.eztemplates.utils;
 import hudson.XmlFile;
 import hudson.model.AbstractProject;
 import hudson.model.Items;
+import hudson.triggers.Trigger;
 import hudson.util.AtomicFileWriter;
 import hudson.util.IOException2;
 import jenkins.model.Jenkins;
@@ -15,6 +16,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.List;
 
 /**
@@ -86,6 +88,20 @@ public class ProjectUtils {
 			return ProjectUtils.findProject(projectName);
 		} finally {
 			out.abort(); // don't leave anything behind
+		}
+	}
+
+	public static List<Trigger<?>> getTriggers(AbstractProject implementationProject) {
+		try {
+			Field triggers = AbstractProject.class.getDeclaredField("triggers");
+			triggers.setAccessible(true);
+			Object result = triggers.get(implementationProject);
+			//noinspection unchecked
+			return (List<Trigger<?>>)result;
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException(e);
+		} catch (NoSuchFieldException e) {
+			throw new RuntimeException(e);
 		}
 	}
 }
