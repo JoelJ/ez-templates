@@ -4,8 +4,17 @@
 		<f:entry field="templateJobName" title="${%Name of job to use as template}">
 			<f:textbox/>
 		</f:entry>
+		<f:entry field="syncDescription" title="${%Sync Description}">
+			<f:checkbox />
+		</f:entry>
+		<f:entry field="syncBuildTriggers" title="${%Sync Build Triggers}">
+			<f:checkbox />
+		</f:entry>
+		<f:entry field="syncDisabled" title="${%Sync Enabled/Disabled State}">
+			<f:checkbox />
+		</f:entry>
 		<f:entry field="syncMatrixAxis" title="${%Sync Matrix Axis Configuration}">
-			<f:checkbox default="true"/>
+			<f:checkbox />
 		</f:entry>
 	</f:optionalBlock>
 </j:jelly>

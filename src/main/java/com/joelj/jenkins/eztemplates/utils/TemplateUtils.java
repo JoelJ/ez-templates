@@ -78,17 +78,25 @@ public class TemplateUtils {
 
 		implementationProject = synchronizeConfigFiles(implementationProject, templateProject);
 
+		// Reverse all the fields that we've marked as "Don't Sync" so that they appear that they haven't changed.
+
 		//Set values that we wanted to keep via reflection to prevent infinite save recursion
 		fixProperties(implementationProject, property, implementationIsTemplate);
 		fixParameters(implementationProject, oldImplementationParameters);
-		fixBuildTriggers(implementationProject, oldTriggers);
-		ReflectionUtils.setFieldValue(AbstractProject.class, implementationProject, "disabled", shouldBeDisabled);
+
+		if(!property.getSyncBuildTriggers()) {
+			fixBuildTriggers(implementationProject, oldTriggers);
+		}
+
+		if(!property.getSyncDisabled()) {
+			ReflectionUtils.setFieldValue(AbstractProject.class, implementationProject, "disabled", shouldBeDisabled);
+		}
 
 		if(oldAxisList != null && implementationProject instanceof MatrixProject && !property.getSyncMatrixAxis()) {
 			fixAxisList((MatrixProject)implementationProject, oldAxisList);
 		}
 
-		if(description != null) {
+		if(!property.getSyncDescription() && description != null) {
 			ReflectionUtils.setFieldValue(AbstractItem.class, implementationProject, "description", description);
 		}
 

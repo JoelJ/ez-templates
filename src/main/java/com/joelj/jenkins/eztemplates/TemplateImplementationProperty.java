@@ -22,17 +22,35 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 	private static final Logger LOG = Logger.getLogger("ez-templates");
 
 	private final String templateJobName;
+	private final boolean syncDescription;
+	private final boolean syncBuildTriggers;
+	private final boolean syncDisabled;
 	private final boolean syncMatrixAxis;
 
 	@DataBoundConstructor
-	public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis) {
+	public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis, boolean syncDescription, boolean syncBuildTriggers, boolean syncDisabled) {
 		this.templateJobName = templateJobName;
 		this.syncMatrixAxis = syncMatrixAxis;
+		this.syncDescription = syncDescription;
+		this.syncBuildTriggers = syncBuildTriggers;
+		this.syncDisabled = syncDisabled;
 	}
 
 	@Exported
 	public String getTemplateJobName() {
 		return templateJobName;
+	}
+
+	public boolean getSyncDescription() {
+		return syncDescription;
+	}
+
+	public boolean getSyncBuildTriggers() {
+		return syncBuildTriggers;
+	}
+
+	public boolean getSyncDisabled() {
+		return syncDisabled;
 	}
 
 	@Exported
@@ -68,9 +86,12 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 					}
 				}
 
+				boolean syncDescription = useTemplate.getBoolean("syncDescription");
+				boolean syncBuildTriggers = useTemplate.getBoolean("syncBuildTriggers");
+				boolean syncDisabled = useTemplate.getBoolean("syncDisabled");
 				boolean syncMatrixAxis = useTemplate.getBoolean("syncMatrixAxis");
 
-				return new TemplateImplementationProperty(templateJobName, syncMatrixAxis);
+				return new TemplateImplementationProperty(templateJobName, syncDescription, syncBuildTriggers, syncDisabled, syncMatrixAxis);
 			} else {
 				@SuppressWarnings("unchecked")
 				TemplateImplementationProperty oldTemplateImplementationProperty = (TemplateImplementationProperty) thisProject.getProperty(TemplateImplementationProperty.class);
