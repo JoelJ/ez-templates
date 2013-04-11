@@ -22,15 +22,22 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 	private static final Logger LOG = Logger.getLogger("ez-templates");
 
 	private final String templateJobName;
+	private final boolean syncMatrixAxis;
 
 	@DataBoundConstructor
-	public TemplateImplementationProperty(String templateJobName) {
+	public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis) {
 		this.templateJobName = templateJobName;
+		this.syncMatrixAxis = syncMatrixAxis;
 	}
 
 	@Exported
 	public String getTemplateJobName() {
 		return templateJobName;
+	}
+
+	@Exported
+	public boolean getSyncMatrixAxis() {
+		return syncMatrixAxis;
 	}
 
 	public AbstractProject findProject() {
@@ -45,7 +52,8 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 			String thisProjectName = thisProject.getName();
 
 			if(formData.size() > 0 && formData.has("useTemplate")) {
-				String templateJobName = formData.getJSONObject("useTemplate").getString("templateJobName");
+				JSONObject useTemplate = formData.getJSONObject("useTemplate");
+				String templateJobName = useTemplate.getString("templateJobName");
 				AbstractProject templateJob = ProjectUtils.findProject(templateJobName);
 				if(templateJob != null) {
 					@SuppressWarnings("unchecked")
@@ -59,7 +67,10 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 						}
 					}
 				}
-				return new TemplateImplementationProperty(templateJobName);
+
+				boolean syncMatrixAxis = useTemplate.getBoolean("syncMatrixAxis");
+
+				return new TemplateImplementationProperty(templateJobName, syncMatrixAxis);
 			} else {
 				@SuppressWarnings("unchecked")
 				TemplateImplementationProperty oldTemplateImplementationProperty = (TemplateImplementationProperty) thisProject.getProperty(TemplateImplementationProperty.class);

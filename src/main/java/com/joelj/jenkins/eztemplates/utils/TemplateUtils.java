@@ -2,6 +2,9 @@ package com.joelj.jenkins.eztemplates.utils;
 
 import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
 import com.joelj.jenkins.eztemplates.TemplateProperty;
+import hudson.matrix.AxisList;
+import hudson.matrix.MatrixBuild;
+import hudson.matrix.MatrixProject;
 import hudson.model.*;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -67,6 +70,12 @@ public class TemplateUtils {
 		boolean shouldBeDisabled = implementationProject.isDisabled();
 		String description = implementationProject.getDescription();
 
+		AxisList oldAxisList = null;
+		if(implementationProject instanceof MatrixProject && !property.getSyncMatrixAxis()) {
+			MatrixProject matrixProject = (MatrixProject) implementationProject;
+			oldAxisList = matrixProject.getAxes();
+		}
+
 		implementationProject = synchronizeConfigFiles(implementationProject, templateProject);
 
 		//Set values that we wanted to keep via reflection to prevent infinite save recursion
@@ -75,11 +84,30 @@ public class TemplateUtils {
 		fixBuildTriggers(implementationProject, oldTriggers);
 		ReflectionUtils.setFieldValue(AbstractProject.class, implementationProject, "disabled", shouldBeDisabled);
 
+		if(oldAxisList != null && implementationProject instanceof MatrixProject && !property.getSyncMatrixAxis()) {
+			fixAxisList((MatrixProject)implementationProject, oldAxisList);
+		}
+
 		if(description != null) {
 			ReflectionUtils.setFieldValue(AbstractItem.class, implementationProject, "description", description);
 		}
 
 		ProjectUtils.silentSave(implementationProject);
+	}
+
+	/**
+	 * Inlined from {@link MatrixProject#setAxes(hudson.matrix.AxisList)} except it doesn't call save.
+	 * @param matrixProject The project to set the Axis on.
+	 * @param axisList The Axis list to set.
+	 */
+	private static void fixAxisList(MatrixProject matrixProject, AxisList axisList) {
+		if(axisList == null) {
+			return; //The "axes" field can never be null. So just to be extra careful.
+		}
+		ReflectionUtils.setFieldValue(MatrixProject.class, matrixProject, "axes", axisList);
+
+		//noinspection unchecked
+		ReflectionUtils.invokeMethod(MatrixProject.class, matrixProject, "rebuildConfigurations", ReflectionUtils.MethodParameter.get(MatrixBuild.MatrixBuildExecution.class, null));
 	}
 
 	private static void fixBuildTriggers(AbstractProject implementationProject, Map<TriggerDescriptor, Trigger> oldTriggers) {
