@@ -22,10 +22,10 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 	private static final Logger LOG = Logger.getLogger("ez-templates");
 
 	private final String templateJobName;
+    private final boolean syncMatrixAxis;
 	private final boolean syncDescription;
 	private final boolean syncBuildTriggers;
 	private final boolean syncDisabled;
-	private final boolean syncMatrixAxis;
 
 	@DataBoundConstructor
 	public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis, boolean syncDescription, boolean syncBuildTriggers, boolean syncDisabled) {
@@ -41,6 +41,11 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 		return templateJobName;
 	}
 
+    @Exported
+    public boolean getSyncMatrixAxis() {
+        return syncMatrixAxis;
+    }
+
 	public boolean getSyncDescription() {
 		return syncDescription;
 	}
@@ -51,11 +56,6 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 
 	public boolean getSyncDisabled() {
 		return syncDisabled;
-	}
-
-	@Exported
-	public boolean getSyncMatrixAxis() {
-		return syncMatrixAxis;
 	}
 
 	public AbstractProject findProject() {
@@ -86,12 +86,12 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 					}
 				}
 
+                boolean syncMatrixAxis = useTemplate.getBoolean("syncMatrixAxis");
 				boolean syncDescription = useTemplate.getBoolean("syncDescription");
 				boolean syncBuildTriggers = useTemplate.getBoolean("syncBuildTriggers");
 				boolean syncDisabled = useTemplate.getBoolean("syncDisabled");
-				boolean syncMatrixAxis = useTemplate.getBoolean("syncMatrixAxis");
 
-				return new TemplateImplementationProperty(templateJobName, syncDescription, syncBuildTriggers, syncDisabled, syncMatrixAxis);
+				return new TemplateImplementationProperty(templateJobName, syncMatrixAxis, syncDescription, syncBuildTriggers, syncDisabled);
 			} else {
 				@SuppressWarnings("unchecked")
 				TemplateImplementationProperty oldTemplateImplementationProperty = (TemplateImplementationProperty) thisProject.getProperty(TemplateImplementationProperty.class);
