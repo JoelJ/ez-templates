@@ -1,5 +1,6 @@
 package com.joelj.jenkins.eztemplates.utils;
 
+import com.google.common.base.Strings;
 import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
 import com.joelj.jenkins.eztemplates.TemplateProperty;
 import hudson.matrix.AxisList;
@@ -31,7 +32,7 @@ import java.util.logging.Logger;
 public class TemplateUtils {
 	private static final Logger LOG = Logger.getLogger("ez-templates");
 
-	public static void handleTemplate(AbstractProject templateProject, TemplateProperty property) throws IOException {
+	public static void handleTemplateSaved(AbstractProject templateProject, TemplateProperty property) throws IOException {
 		LOG.info("Template " + templateProject.getDisplayName() + " was saved. Syncing implementations. " + property);
 		Set<String> implementations = property.getImplementations();
 
@@ -57,7 +58,7 @@ public class TemplateUtils {
                 continue;
             }
 
-			handleImplementation(project, impProperty);
+			handleTemplateImplementationSaved(project, impProperty);
 		}
 
 		if(changedTemplateProject) {
@@ -65,7 +66,19 @@ public class TemplateUtils {
 		}
 	}
 
-	public static void handleImplementation(AbstractProject implementationProject, TemplateImplementationProperty property) throws IOException {
+    public static void handleTemplateDeleted(AbstractProject templateProject, TemplateProperty property) throws IOException {
+        LOG.info(String.format("Template %s was deleted. Removing from implementations.",templateProject.getDisplayName()));
+        for( String implementationName: property.getImplementations() ) {
+            AbstractProject implementationProject = ProjectUtils.findProject(implementationName);
+            if (implementationProject != null) {
+                LOG.info(String.format("Removing template from %s.",implementationProject.getDisplayName()));
+                implementationProject.removeProperty(TemplateImplementationProperty.class);
+                ProjectUtils.silentSave(implementationProject);
+            }
+        }
+    }
+
+	public static void handleTemplateImplementationSaved(AbstractProject implementationProject, TemplateImplementationProperty property) throws IOException {
 		LOG.info("Implementation " + implementationProject.getDisplayName() + " was saved. Syncing with " + property.getTemplateJobName());
 		AbstractProject templateProject = property.findProject();
         if ( templateProject==null ) {
@@ -226,4 +239,5 @@ public class TemplateUtils {
 			}
 		}
 	}
+
 }

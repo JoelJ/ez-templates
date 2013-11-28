@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 public class TemplateImplementationProperty extends JobProperty<AbstractProject<?,?>> {
 	private static final Logger LOG = Logger.getLogger("ez-templates");
 
-	private final String templateJobName;
+	private String templateJobName;
     private final boolean syncMatrixAxis;
 	private final boolean syncDescription;
 	private final boolean syncBuildTriggers;
@@ -45,6 +45,10 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 	public String getTemplateJobName() {
 		return templateJobName;
 	}
+
+    public void setTemplateJobName(String templateJobName) {
+        this.templateJobName = templateJobName;
+    }
 
     @Exported
     public boolean getSyncMatrixAxis() {
