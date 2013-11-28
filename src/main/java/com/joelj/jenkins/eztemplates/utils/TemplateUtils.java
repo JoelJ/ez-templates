@@ -60,6 +60,9 @@ public class TemplateUtils {
 	public static void handleImplementation(AbstractProject implementationProject, TemplateImplementationProperty property) throws IOException {
 		LOG.info("Implementation " + implementationProject.getDisplayName() + " was saved. Syncing with " + property.getTemplateJobName());
 		AbstractProject templateProject = property.findProject();
+        if ( templateProject==null ) {
+            throw new IllegalStateException(String.format("Cannot find template %s used by job %s", property.getTemplateJobName(), implementationProject.getDisplayName()));
+        }
 
 		//Capture values we want to keep
 		@SuppressWarnings("unchecked")
