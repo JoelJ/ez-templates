@@ -5,13 +5,17 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
+import hudson.util.FormValidation;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -144,9 +148,20 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
             }
         }
 
-		@Override
+        @Override
 		public String getDisplayName() {
 			return Messages.TemplateImplementationProperty_displayName();
 		}
+
+        @SuppressWarnings({ "static-method", "unused" })
+        public FormValidation doCheckTemplateJobName(@QueryParameter final String value) {
+            if ( StringUtils.isBlank(value) ) {
+                return FormValidation.warning("Template name is blank");
+            }
+            if ( ProjectUtils.findProject(value)==null ) {
+                return FormValidation.error("Template %s not found",value);
+            }
+            return FormValidation.ok();
+        }
 	}
 }
