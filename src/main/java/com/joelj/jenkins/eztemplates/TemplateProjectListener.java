@@ -37,6 +37,18 @@ public class TemplateProjectListener extends ItemListener {
         }
     }
 
+    @Override
+    public void onRenamed(Item item, String oldName, String newName) {
+        TemplateProperty property = getTemplateProperty(item);
+        if (property != null) {
+            try {
+                TemplateUtils.handleTemplateRename((AbstractProject) item, property, oldName, newName);
+            } catch (Exception e) {
+                throw Throwables.propagate(e);
+            }
+        }
+    }
+
     /**
      * @param item A changed project
      * @return null if this is not a template project
