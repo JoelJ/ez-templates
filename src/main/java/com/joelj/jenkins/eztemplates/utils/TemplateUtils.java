@@ -78,6 +78,21 @@ public class TemplateUtils {
         }
     }
 
+    public static void handleTemplateRename(AbstractProject templateProject, TemplateProperty property, String oldName, String newName) throws IOException {
+        LOG.info(String.format("Template %s was renamed. Updating implementations.",templateProject.getDisplayName()));
+        for( String implementationName: property.getImplementations() ) {
+            AbstractProject implementationProject = ProjectUtils.findProject(implementationName);
+            if (implementationProject != null) {
+                LOG.info(String.format("Updating template in %s.",implementationProject.getDisplayName()));
+                TemplateImplementationProperty implementationProperty = (TemplateImplementationProperty)implementationProject.getProperty(TemplateImplementationProperty.class);
+                if (oldName.equals(implementationProperty.getTemplateJobName())) {
+                    implementationProperty.setTemplateJobName(newName);
+                    ProjectUtils.silentSave(implementationProject);
+                }
+            }
+        }
+    }
+
 	public static void handleTemplateImplementationSaved(AbstractProject implementationProject, TemplateImplementationProperty property) throws IOException {
 		LOG.info("Implementation " + implementationProject.getDisplayName() + " was saved. Syncing with " + property.getTemplateJobName());
 		AbstractProject templateProject = property.findProject();
