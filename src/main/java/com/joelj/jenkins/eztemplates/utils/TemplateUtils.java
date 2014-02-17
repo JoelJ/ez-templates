@@ -215,7 +215,7 @@ public class TemplateUtils {
 			}
 		}
 
-		return new ParametersDefinitionProperty(result);
+		return result.isEmpty() ? null : new ParametersDefinitionProperty(result);
 	}
 
 	private static AbstractProject synchronizeConfigFiles(AbstractProject implementationProject, AbstractProject templateProject) throws IOException {
