@@ -9,7 +9,8 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -17,57 +18,57 @@ import java.util.concurrent.ConcurrentHashMap;
  * Date: 2/25/13
  * Time: 10:11 PM
  */
-public class TemplateProperty extends JobProperty<AbstractProject<?,?>> {
-	private final Set<String> implementations;
+public class TemplateProperty extends JobProperty<AbstractProject<?, ?>> {
+    private final Set<String> implementations;
 
-	@DataBoundConstructor
-	public TemplateProperty(Set<String> implementations) {
-		this.implementations = implementations;
-	}
+    @DataBoundConstructor
+    public TemplateProperty(Set<String> implementations) {
+        this.implementations = implementations;
+    }
 
-	public Set<String> getImplementations() {
-		return implementations;
-	}
+    public Set<String> getImplementations() {
+        return implementations;
+    }
 
-	public boolean addImplementation(String projectName) {
-		return implementations.add(projectName);
-	}
+    public boolean addImplementation(String projectName) {
+        return implementations.add(projectName);
+    }
 
-	public boolean removeImplementation(String projectName) {
-		return implementations.remove(projectName);
-	}
+    public boolean removeImplementation(String projectName) {
+        return implementations.remove(projectName);
+    }
 
-	@Extension
-	public static class DescriptorImpl extends JobPropertyDescriptor {
-		@Override
-		public JobProperty<?> newInstance(StaplerRequest request, JSONObject formData) throws FormException {
-			if(formData.size() > 0) {
-				Set<String> implementationJobs = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+    @Extension
+    public static class DescriptorImpl extends JobPropertyDescriptor {
+        @Override
+        public JobProperty<?> newInstance(StaplerRequest request, JSONObject formData) throws FormException {
+            if (formData.size() > 0) {
+                Set<String> implementationJobs = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
-				AbstractProject thisProject = ProjectUtils.findProject(request);
-				if(thisProject != null) {
-					@SuppressWarnings("unchecked")
-					TemplateProperty property = (TemplateProperty) thisProject.getProperty(TemplateProperty.class);
+                AbstractProject thisProject = ProjectUtils.findProject(request);
+                if (thisProject != null) {
+                    @SuppressWarnings("unchecked")
+                    TemplateProperty property = (TemplateProperty) thisProject.getProperty(TemplateProperty.class);
 
-					if(property != null) {
-						Set<String> oldImplementationList = property.getImplementations();
-						implementationJobs.addAll(oldImplementationList);
-					}
-				}
+                    if (property != null) {
+                        Set<String> oldImplementationList = property.getImplementations();
+                        implementationJobs.addAll(oldImplementationList);
+                    }
+                }
 
-				return new TemplateProperty(implementationJobs);
-			}
-			return null;
-		}
+                return new TemplateProperty(implementationJobs);
+            }
+            return null;
+        }
 
-		@Override
-		public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-			return super.configure(req, json);
-		}
+        @Override
+        public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+            return super.configure(req, json);
+        }
 
-		@Override
-		public String getDisplayName() {
-			return Messages.TemplateImplementationProperty_displayName();
-		}
-	}
+        @Override
+        public String getDisplayName() {
+            return Messages.TemplateImplementationProperty_displayName();
+        }
+    }
 }
