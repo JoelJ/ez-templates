@@ -51,8 +51,8 @@ public class TemplateUtils {
 			@SuppressWarnings("unchecked")
 			TemplateImplementationProperty impProperty = (TemplateImplementationProperty) project.getProperty(TemplateImplementationProperty.class);
 
-            if ( !templateProject.getName().equals(impProperty.getTemplateJobName()) ) {
-                LOG.warning(String.format("%s doesn't inherit from this template. Cleaning it out of the template.",implementationName));
+            if (impProperty == null || !templateProject.getName().equals(impProperty.getTemplateJobName())) {
+                LOG.warning(String.format("%s doesn't inherit from this template. Cleaning it out of the template.", implementationName));
                 changedTemplateProject = true;
                 iterator.remove();
                 continue;
