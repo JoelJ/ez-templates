@@ -199,6 +199,8 @@ public class TemplateUtils {
                 if (newImplementationParameter.getName().equals(oldImplementationParameter.getName())) {
                     found = true;
                     iterator.remove(); //Make the next iteration a little faster.
+                    // #17 Description on parameters should always be overridden by template
+                    ReflectionUtils.setFieldValue(ParameterDefinition.class, oldImplementationParameter, "description", newImplementationParameter.getDescription());
                     result.add(oldImplementationParameter);
                 }
             }
