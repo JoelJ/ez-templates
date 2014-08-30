@@ -1,8 +1,11 @@
 package com.joelj.jenkins.eztemplates.utils;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import hudson.XmlFile;
 import hudson.model.AbstractProject;
 import hudson.model.Items;
+import hudson.model.JobProperty;
 import hudson.triggers.Trigger;
 import hudson.util.AtomicFileWriter;
 import hudson.util.IOException2;
@@ -17,6 +20,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -25,6 +29,17 @@ import java.util.List;
  * Time: 11:49 PM
  */
 public class ProjectUtils {
+
+    public static Collection<AbstractProject> findProjectsWithProperty(final Class<? extends JobProperty<?>> property) {
+        List<AbstractProject> projects = Jenkins.getInstance().getAllItems(AbstractProject.class);
+        return Collections2.filter(projects, new Predicate<AbstractProject>() {
+            @Override
+            public boolean apply(AbstractProject abstractProject) {
+                return abstractProject.getProperty(property) != null;
+            }
+        });
+    }
+
     public static AbstractProject findProject(StaplerRequest request) {
         Ancestor ancestor = request.getAncestors().get(request.getAncestors().size() - 1);
         while (ancestor != null && !(ancestor.getObject() instanceof AbstractProject)) {
