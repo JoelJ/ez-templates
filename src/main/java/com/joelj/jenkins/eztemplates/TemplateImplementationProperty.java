@@ -6,6 +6,7 @@ import hudson.model.AbstractProject;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -112,6 +113,22 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
             return null;
         }
 
+        /**
+         * Jenkins-convention to populate the drop-down box with discovered templates
+         */
+        @SuppressWarnings("UnusedDeclaration")
+        public ListBoxModel doFillTemplateJobNameItems() {
+            ListBoxModel items = new ListBoxModel();
+            // Add null as first option - dangerous to force an existing project onto a template in case
+            // a noob destroys their config
+            items.add(Messages.TemplateImplementationProperty_noTemplateSelected(), null);
+            // Add all discovered templates
+            for (AbstractProject project : ProjectUtils.findProjectsWithProperty(TemplateProperty.class)) {
+                items.add(project.getDisplayName(), project.getName());
+            }
+            return items;
+        }
+
         private static void removeImplementationFromTemplate(AbstractProject templateProject, AbstractProject implementationProject) throws FormException {
             if (templateProject == null) {
                 // Could just be an empty name!
@@ -158,10 +175,7 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
         @SuppressWarnings({"static-method", "unused"})
         public FormValidation doCheckTemplateJobName(@QueryParameter final String value) {
             if (StringUtils.isBlank(value)) {
-                return FormValidation.warning("Template name is blank");
-            }
-            if (ProjectUtils.findProject(value) == null) {
-                return FormValidation.error("Template %s not found", value);
+                return FormValidation.error(Messages.TemplateImplementationProperty_noTemplateSelected());
             }
             return FormValidation.ok();
         }
