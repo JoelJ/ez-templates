@@ -23,11 +23,6 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * User: Joel Johnson
- * Date: 2/25/13
- * Time: 11:49 PM
- */
 public class ProjectUtils {
 
     public static Collection<AbstractProject> findProjectsWithProperty(final Class<? extends JobProperty<?>> property) {

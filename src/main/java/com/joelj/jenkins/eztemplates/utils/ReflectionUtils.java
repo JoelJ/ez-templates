@@ -5,11 +5,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-/**
- * User: Joel Johnson
- * Date: 2/26/13
- * Time: 5:42 PM
- */
 public class ReflectionUtils {
     public static <T> T getFieldValue(Class c, Object instance, String name) {
         try {
