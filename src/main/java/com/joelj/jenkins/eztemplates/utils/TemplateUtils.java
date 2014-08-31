@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -32,7 +31,7 @@ public class TemplateUtils {
     private static final Logger LOG = Logger.getLogger("ez-templates");
 
     public static void handleTemplateSaved(AbstractProject templateProject, TemplateProperty property) throws IOException {
-        LOG.info("Template " + templateProject.getDisplayName() + " was saved. Syncing implementations. " + property);
+        LOG.info(String.format("Template [%s] was saved. Syncing implementations.", templateProject.getFullDisplayName()));
         Set<String> implementations = property.getImplementations();
 
         Iterator<String> iterator = implementations.iterator();
@@ -41,7 +40,7 @@ public class TemplateUtils {
             String implementationName = iterator.next();
             AbstractProject project = ProjectUtils.findProject(implementationName);
             if (project == null) {
-                LOG.warning(implementationName + " doesn't exist as a project. Cleaning it out of the template.");
+                LOG.warning(String.format("[%s] doesn't exist as a project. Cleaning it out of the template.", implementationName));
                 changedTemplateProject = true;
                 iterator.remove();
                 continue;
@@ -50,8 +49,8 @@ public class TemplateUtils {
             @SuppressWarnings("unchecked")
             TemplateImplementationProperty impProperty = (TemplateImplementationProperty) project.getProperty(TemplateImplementationProperty.class);
 
-            if (impProperty == null || !templateProject.getName().equals(impProperty.getTemplateJobName())) {
-                LOG.warning(String.format("%s doesn't inherit from this template. Cleaning it out of the template.", implementationName));
+            if (impProperty == null || !templateProject.getFullName().equals(impProperty.getTemplateJobName())) {
+                LOG.warning(String.format("[%s] doesn't inherit from this template. Cleaning it out of the template.", implementationName));
                 changedTemplateProject = true;
                 iterator.remove();
                 continue;
@@ -66,11 +65,11 @@ public class TemplateUtils {
     }
 
     public static void handleTemplateDeleted(AbstractProject templateProject, TemplateProperty property) throws IOException {
-        LOG.info(String.format("Template %s was deleted. Removing from implementations.", templateProject.getDisplayName()));
+        LOG.info(String.format("Template [%s] was deleted. Removing from implementations.", templateProject.getFullDisplayName()));
         for (String implementationName : property.getImplementations()) {
             AbstractProject implementationProject = ProjectUtils.findProject(implementationName);
             if (implementationProject != null) {
-                LOG.info(String.format("Removing template from %s.", implementationProject.getDisplayName()));
+                LOG.info(String.format("Removing template from [%s].", implementationProject.getFullDisplayName()));
                 implementationProject.removeProperty(TemplateImplementationProperty.class);
                 ProjectUtils.silentSave(implementationProject);
             }
@@ -78,11 +77,11 @@ public class TemplateUtils {
     }
 
     public static void handleTemplateRename(AbstractProject templateProject, TemplateProperty property, String oldName, String newName) throws IOException {
-        LOG.info(String.format("Template %s was renamed. Updating implementations.", templateProject.getDisplayName()));
+        LOG.info(String.format("Template [%s] was renamed. Updating implementations.", templateProject.getFullDisplayName()));
         for (String implementationName : property.getImplementations()) {
             AbstractProject implementationProject = ProjectUtils.findProject(implementationName);
             if (implementationProject != null) {
-                LOG.info(String.format("Updating template in %s.", implementationProject.getDisplayName()));
+                LOG.info(String.format("Updating template in [%s].", implementationProject.getFullDisplayName()));
                 TemplateImplementationProperty implementationProperty = (TemplateImplementationProperty) implementationProject.getProperty(TemplateImplementationProperty.class);
                 if (oldName.equals(implementationProperty.getTemplateJobName())) {
                     implementationProperty.setTemplateJobName(newName);
@@ -93,10 +92,10 @@ public class TemplateUtils {
     }
 
     public static void handleTemplateImplementationSaved(AbstractProject implementationProject, TemplateImplementationProperty property) throws IOException {
-        LOG.info("Implementation " + implementationProject.getDisplayName() + " was saved. Syncing with " + property.getTemplateJobName());
+        LOG.info(String.format("Implementation [%s] was saved. Syncing with [%s].", implementationProject.getFullDisplayName(), property.getTemplateJobName()));
         AbstractProject templateProject = property.findProject();
         if (templateProject == null) {
-            throw new IllegalStateException(String.format("Cannot find template %s used by job %s", property.getTemplateJobName(), implementationProject.getDisplayName()));
+            throw new IllegalStateException(String.format("Cannot find template [%s] used by job [%s]", property.getTemplateJobName(), implementationProject.getFullDisplayName()));
         }
 
         //Capture values we want to keep
@@ -207,13 +206,13 @@ public class TemplateUtils {
             if (!found) {
                 //Add new parameters not accounted for.
                 result.add(newImplementationParameter);
+                LOG.info(String.format("\t+++ new parameter [%s]", newImplementationParameter.getName()));
             }
         }
 
-        if (LOG.isLoggable(Level.INFO) && oldImplementationParameters != null && oldImplementationParameters.size() > 0) {
-            LOG.info("Throwing away parameters: ");
-            for (ParameterDefinition newImplementationParameter : oldImplementationParameters) {
-                LOG.info("\t" + newImplementationParameter.toString());
+        if (oldImplementationParameters != null) {
+            for (ParameterDefinition unused : oldImplementationParameters) {
+                LOG.info(String.format("\t--- old parameter [%s]", unused.getName()));
             }
         }
 

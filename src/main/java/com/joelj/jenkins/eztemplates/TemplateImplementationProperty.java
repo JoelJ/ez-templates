@@ -83,16 +83,16 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
 
             if (hasOldProperty) {
                 boolean removeOldProperty = true;
+                AbstractProject oldTemplate = oldProperty.findProject();
                 if (hasNewProperty) {
-                    AbstractProject oldTemplate = oldProperty.findProject();
                     String templateJobName = formData.getJSONObject("useTemplate").getString("templateJobName");
-                    boolean namesMatch = oldTemplate != null && StringUtils.defaultString(templateJobName).equals(oldTemplate.getName());
+                    boolean namesMatch = oldTemplate != null && StringUtils.equals(templateJobName, oldTemplate.getFullName());
                     if (namesMatch) {
                         removeOldProperty = false;
                     }
                 }
                 if (removeOldProperty) {
-                    removeImplementationFromTemplate(oldProperty.findProject(), implementationProject);
+                    removeImplementationFromTemplate(oldTemplate, implementationProject);
                 }
             }
 
@@ -124,7 +124,8 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
             items.add(Messages.TemplateImplementationProperty_noTemplateSelected(), null);
             // Add all discovered templates
             for (AbstractProject project : ProjectUtils.findProjectsWithProperty(TemplateProperty.class)) {
-                items.add(project.getDisplayName(), project.getName());
+                // fullName includes any folder structure
+                items.add(project.getFullDisplayName(), project.getFullName());
             }
             return items;
         }
@@ -132,14 +133,14 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
         private static void removeImplementationFromTemplate(AbstractProject templateProject, AbstractProject implementationProject) throws FormException {
             if (templateProject == null) {
                 // Could just be an empty name!
-                LOG.warning(String.format("Cannot remove %s from missing template", implementationProject.getDisplayName()));
+                LOG.warning(String.format("Cannot remove [%s] from missing template", implementationProject.getFullDisplayName()));
                 return;
             }
             @SuppressWarnings("unchecked")
             TemplateProperty property = (TemplateProperty) templateProject.getProperty(TemplateProperty.class);
 
             if (property != null && property.removeImplementation(implementationProject.getName())) {
-                LOG.info(String.format("Removing %s from template %s", implementationProject.getDisplayName(), templateProject.getDisplayName()));
+                LOG.info(String.format("Removing [%s] from template [%s]", implementationProject.getFullDisplayName(), templateProject.getFullDisplayName()));
                 saveTemplate(templateProject);
             }
         }
@@ -153,7 +154,7 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
             TemplateProperty property = (TemplateProperty) templateProject.getProperty(TemplateProperty.class);
 
             if (property != null && property.addImplementation(implementationProject.getName())) {
-                LOG.info(String.format("Assigning %s to template %s ", implementationProject.getDisplayName(), templateProject.getDisplayName()));
+                LOG.info(String.format("Assigning [%s] to template [%s]", implementationProject.getFullDisplayName(), templateProject.getFullDisplayName()));
                 // We did add a new implementation to the template (if it already used that project addImplementation returns false)
                 saveTemplate(templateProject);
             }
