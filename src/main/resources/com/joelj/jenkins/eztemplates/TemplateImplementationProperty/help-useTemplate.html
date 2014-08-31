@@ -1,11 +1,11 @@
 <div>
-	<p>Allows you to specify another job to use as a template, if it has the option enabled.</p>
-	<p>
-		Everything is copied verbatim whenever this job is saved from the other project <em>except</em> the parameters,
-		which everything is copied from them except their default values.
-		You should change those values to make this build unique.
-	</p>
-	<p>
-		Whenever the specified template job is saved, this job will automatically be synced, and any parameters specified will be used.
-	</p>
+    <p>Allows you to specify another job to use as a template.</p>
+    <p>
+        The implementation overwrites its config with that of the template <em>except</em> the
+        <a href="https://wiki.jenkins-ci.org/display/JENKINS/Parameterized+Build">parameters</a>,
+        which retain their default values, and items covered by specific flags.
+    </p>
+    <p>
+        Synchronisation happens whenever an implementation job or its template is saved.
+    </p>
 </div>
