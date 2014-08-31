@@ -12,7 +12,7 @@
 			<ul>
 				<j:forEach var="implementor" items="${instance.implementations}">
 					<li>
-						<a href="${rootURL}/job/${implementor}">${implementor}</a>
+						<a href="${rootURL}/${implementor.url}">${implementor.fullDisplayName}</a>
 					</li>
 				</j:forEach>
 			</ul>

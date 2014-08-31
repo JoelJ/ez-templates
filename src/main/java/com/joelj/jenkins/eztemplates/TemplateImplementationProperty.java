@@ -14,14 +14,8 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 
-import java.io.IOException;
 import java.util.logging.Logger;
 
-/**
- * User: Joel Johnson
- * Date: 2/25/13
- * Time: 10:11 PM
- */
 public class TemplateImplementationProperty extends JobProperty<AbstractProject<?, ?>> {
     private static final Logger LOG = Logger.getLogger("ez-templates");
 
@@ -66,7 +60,7 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
         return syncDisabled;
     }
 
-    public AbstractProject findProject() {
+    public AbstractProject findTemplate() {
         return ProjectUtils.findProject(getTemplateJobName());
     }
 
@@ -74,29 +68,7 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
     public static class DescriptorImpl extends JobPropertyDescriptor {
         @Override
         public JobProperty<?> newInstance(StaplerRequest request, JSONObject formData) throws FormException {
-            AbstractProject implementationProject = ProjectUtils.findProject(request);
-
-            TemplateImplementationProperty oldProperty = (TemplateImplementationProperty) implementationProject.getProperty(TemplateImplementationProperty.class);
-
-            boolean hasNewProperty = formData.size() > 0 && formData.has("useTemplate");
-            boolean hasOldProperty = oldProperty != null;
-
-            if (hasOldProperty) {
-                boolean removeOldProperty = true;
-                AbstractProject oldTemplate = oldProperty.findProject();
-                if (hasNewProperty) {
-                    String templateJobName = formData.getJSONObject("useTemplate").getString("templateJobName");
-                    boolean namesMatch = oldTemplate != null && StringUtils.equals(templateJobName, oldTemplate.getFullName());
-                    if (namesMatch) {
-                        removeOldProperty = false;
-                    }
-                }
-                if (removeOldProperty) {
-                    removeImplementationFromTemplate(oldTemplate, implementationProject);
-                }
-            }
-
-            if (hasNewProperty) {
+            if (formData.size() > 0 && formData.has("useTemplate")) {
                 JSONObject useTemplate = formData.getJSONObject("useTemplate");
 
                 String templateJobName = useTemplate.getString("templateJobName");
@@ -104,8 +76,6 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
                 boolean syncDescription = useTemplate.getBoolean("syncDescription");
                 boolean syncBuildTriggers = useTemplate.getBoolean("syncBuildTriggers");
                 boolean syncDisabled = useTemplate.getBoolean("syncDisabled");
-
-                assignImplementationToTemplate(ProjectUtils.findProject(templateJobName), implementationProject);
 
                 return new TemplateImplementationProperty(templateJobName, syncMatrixAxis, syncDescription, syncBuildTriggers, syncDisabled);
             }
@@ -128,44 +98,6 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
                 items.add(project.getFullDisplayName(), project.getFullName());
             }
             return items;
-        }
-
-        private static void removeImplementationFromTemplate(AbstractProject templateProject, AbstractProject implementationProject) throws FormException {
-            if (templateProject == null) {
-                // Could just be an empty name!
-                LOG.warning(String.format("Cannot remove [%s] from missing template", implementationProject.getFullDisplayName()));
-                return;
-            }
-            @SuppressWarnings("unchecked")
-            TemplateProperty property = (TemplateProperty) templateProject.getProperty(TemplateProperty.class);
-
-            if (property != null && property.removeImplementation(implementationProject.getName())) {
-                LOG.info(String.format("Removing [%s] from template [%s]", implementationProject.getFullDisplayName(), templateProject.getFullDisplayName()));
-                saveTemplate(templateProject);
-            }
-        }
-
-        private static void assignImplementationToTemplate(AbstractProject templateProject, AbstractProject implementationProject) throws FormException {
-            if (templateProject == null) {
-                // May not have configured it yet
-                return;
-            }
-            @SuppressWarnings("unchecked")
-            TemplateProperty property = (TemplateProperty) templateProject.getProperty(TemplateProperty.class);
-
-            if (property != null && property.addImplementation(implementationProject.getName())) {
-                LOG.info(String.format("Assigning [%s] to template [%s]", implementationProject.getFullDisplayName(), templateProject.getFullDisplayName()));
-                // We did add a new implementation to the template (if it already used that project addImplementation returns false)
-                saveTemplate(templateProject);
-            }
-        }
-
-        private static void saveTemplate(AbstractProject templateProject) throws FormException {
-            try {
-                ProjectUtils.silentSave(templateProject);
-            } catch (IOException e) {
-                throw new FormException(e, "templateJobName");
-            }
         }
 
         @Override
