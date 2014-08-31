@@ -6,6 +6,7 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Item;
 import hudson.model.listeners.ItemListener;
+import org.apache.tools.ant.util.StringUtils;
 
 /**
  * React to changes being made on template projects
@@ -38,11 +39,11 @@ public class TemplateProjectListener extends ItemListener {
     }
 
     @Override
-    public void onRenamed(Item item, String oldName, String newName) {
+    public void onLocationChanged(Item item, String oldFullName, String newFullName) {
         TemplateProperty property = getTemplateProperty(item);
         if (property != null) {
             try {
-                TemplateUtils.handleTemplateRename((AbstractProject) item, property, oldName, newName);
+                TemplateUtils.handleTemplateRename((AbstractProject) item, property, oldFullName, newFullName);
             } catch (Exception e) {
                 throw Throwables.propagate(e);
             }
