@@ -1,8 +1,6 @@
 package com.joelj.jenkins.eztemplates;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
-import com.joelj.jenkins.eztemplates.utils.ProjectUtils;
+import com.joelj.jenkins.eztemplates.utils.TemplateUtils;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Item;
@@ -35,23 +33,10 @@ public class TemplateProperty extends JobProperty<AbstractProject<?, ?>> {
     }
 
     @Inject
-    private ProjectUtils projectUtils;
-
-    // TODO should probably not be implemented here
-    public Collection<AbstractProject> getImplementations(final String templateFullName) {
-        Collection<AbstractProject> projects = projectUtils.findProjectsWithProperty(TemplateImplementationProperty.class);
-        return Collections2.filter(projects, new Predicate<AbstractProject>() {
-            @Override
-            public boolean apply(AbstractProject abstractProject) {
-                TemplateImplementationProperty prop = (TemplateImplementationProperty) abstractProject.getProperty(TemplateImplementationProperty.class);
-                return templateFullName.equals(prop.getTemplateJobName());
-            }
-        });
-
-    }
+    private TemplateUtils templateUtils;
 
     public Collection<AbstractProject> getImplementations() {
-        return getImplementations(owner.getFullName());
+        return templateUtils.implementationsOf(owner.getFullName());
     }
 
     @Extension

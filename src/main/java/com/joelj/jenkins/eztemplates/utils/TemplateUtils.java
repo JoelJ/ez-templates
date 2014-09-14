@@ -1,5 +1,7 @@
 package com.joelj.jenkins.eztemplates.utils;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
 import com.joelj.jenkins.eztemplates.TemplateProperty;
 import hudson.matrix.AxisList;
@@ -18,10 +20,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 @Singleton
@@ -52,7 +51,7 @@ public class TemplateUtils {
 
     public void handleTemplateRename(AbstractProject templateProject, TemplateProperty property, String oldFullName, String newFullName) throws IOException {
         LOG.info(String.format("Template [%s] was renamed. Updating implementations.", templateProject.getFullDisplayName()));
-        for (AbstractProject impl : property.getImplementations(oldFullName)) {
+        for (AbstractProject impl : implementationsOf(oldFullName)) {
             LOG.info(String.format("Updating template in [%s].", impl.getFullDisplayName()));
             TemplateImplementationProperty implProperty = TemplateImplementationProperty.from(impl);
             if (oldFullName.equals(implProperty.getTemplateJobName())) {
@@ -60,6 +59,18 @@ public class TemplateUtils {
                 projectUtils.silentSave(impl);
             }
         }
+    }
+
+    public Collection<AbstractProject> implementationsOf(final String templateFullName) {
+        Collection<AbstractProject> projects = projectUtils.findProjectsWithProperty(TemplateImplementationProperty.class);
+        return Collections2.filter(projects, new Predicate<AbstractProject>() {
+            @Override
+            public boolean apply(AbstractProject abstractProject) {
+                TemplateImplementationProperty prop = TemplateImplementationProperty.from(abstractProject);
+                return templateFullName.equals(prop.getTemplateJobName());
+            }
+        });
+
     }
 
     public void handleTemplateImplementationSaved(AbstractProject implementationProject, TemplateImplementationProperty property) throws IOException {
