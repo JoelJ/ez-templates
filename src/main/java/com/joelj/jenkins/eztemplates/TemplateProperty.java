@@ -10,12 +10,17 @@ import hudson.model.JobPropertyDescriptor;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.inject.Inject;
 import java.util.Collection;
 
 public class TemplateProperty extends JobProperty<AbstractProject<?, ?>> {
 
-    public static Collection<AbstractProject> getImplementations(final String templateFullName) {
-        Collection<AbstractProject> projects = ProjectUtils.findProjectsWithProperty(TemplateImplementationProperty.class);
+    @Inject
+    private ProjectUtils projectUtils;
+
+    // TODO should probably not be implemented here
+    public Collection<AbstractProject> getImplementations(final String templateFullName) {
+        Collection<AbstractProject> projects = projectUtils.findProjectsWithProperty(TemplateImplementationProperty.class);
         return Collections2.filter(projects, new Predicate<AbstractProject>() {
             @Override
             public boolean apply(AbstractProject abstractProject) {

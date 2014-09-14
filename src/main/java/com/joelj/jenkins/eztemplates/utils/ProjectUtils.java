@@ -13,6 +13,7 @@ import jenkins.model.Jenkins;
 import org.kohsuke.stapler.Ancestor;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.inject.Singleton;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -23,9 +24,10 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 
+@Singleton
 public class ProjectUtils {
 
-    public static Collection<AbstractProject> findProjectsWithProperty(final Class<? extends JobProperty<?>> property) {
+    public Collection<AbstractProject> findProjectsWithProperty(final Class<? extends JobProperty<?>> property) {
         List<AbstractProject> projects = Jenkins.getInstance().getAllItems(AbstractProject.class);
         return Collections2.filter(projects, new Predicate<AbstractProject>() {
             @Override
@@ -35,7 +37,7 @@ public class ProjectUtils {
         });
     }
 
-    public static AbstractProject findProject(StaplerRequest request) {
+    public AbstractProject findProject(StaplerRequest request) {
         Ancestor ancestor = request.getAncestors().get(request.getAncestors().size() - 1);
         while (ancestor != null && !(ancestor.getObject() instanceof AbstractProject)) {
             ancestor = ancestor.getPrev();
@@ -50,7 +52,7 @@ public class ProjectUtils {
      * Get a project by its fullName (including any folder structure if present).
      * Temporarily also allows a match by name if one exists.
      */
-    public static AbstractProject findProject(String fullName) {
+    public AbstractProject findProject(String fullName) {
         List<AbstractProject> projects = Jenkins.getInstance().getAllItems(AbstractProject.class);
         AbstractProject nameOnlyMatch = null; // marc: 20140831, Remove compat patch for users upgrading
         for (AbstractProject project : projects) {
@@ -68,7 +70,7 @@ public class ProjectUtils {
      * Silently saves the project without triggering any save events.
      * Use this method to save a project from within an Update event handler.
      */
-    public static void silentSave(AbstractProject project) throws IOException {
+    public void silentSave(AbstractProject project) throws IOException {
         project.getConfigFile().write(project);
     }
 
@@ -77,7 +79,7 @@ public class ProjectUtils {
      * returning the project after the update.
      */
     @SuppressWarnings("unchecked")
-    public static AbstractProject updateProjectWithXmlSource(AbstractProject project, Source source) throws IOException {
+    public AbstractProject updateProjectWithXmlSource(AbstractProject project, Source source) throws IOException {
         String projectName = project.getName();
 
         XmlFile configXmlFile = project.getConfigFile();
@@ -103,13 +105,13 @@ public class ProjectUtils {
 
             // if everything went well, commit this new version
             out.commit();
-            return ProjectUtils.findProject(projectName);
+            return findProject(projectName);
         } finally {
             out.abort(); // don't leave anything behind
         }
     }
 
-    public static List<Trigger<?>> getTriggers(AbstractProject implementationProject) {
+    public List<Trigger<?>> getTriggers(AbstractProject implementationProject) {
         try {
             Field triggers = AbstractProject.class.getDeclaredField("triggers");
             triggers.setAccessible(true);

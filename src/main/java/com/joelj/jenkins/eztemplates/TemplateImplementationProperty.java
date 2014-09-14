@@ -14,6 +14,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 
+import javax.inject.Inject;
 import java.util.logging.Logger;
 
 public class TemplateImplementationProperty extends JobProperty<AbstractProject<?, ?>> {
@@ -60,12 +61,12 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
         return syncDisabled;
     }
 
-    public AbstractProject findTemplate() {
-        return ProjectUtils.findProject(getTemplateJobName());
-    }
-
     @Extension
     public static class DescriptorImpl extends JobPropertyDescriptor {
+
+        @Inject
+        private ProjectUtils projectUtils;
+
         @Override
         public JobProperty<?> newInstance(StaplerRequest request, JSONObject formData) throws FormException {
             if (formData.size() > 0 && formData.has("useTemplate")) {
@@ -93,7 +94,7 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
             // a noob destroys their config
             items.add(Messages.TemplateImplementationProperty_noTemplateSelected(), null);
             // Add all discovered templates
-            for (AbstractProject project : ProjectUtils.findProjectsWithProperty(TemplateProperty.class)) {
+            for (AbstractProject project : projectUtils.findProjectsWithProperty(TemplateProperty.class)) {
                 // fullName includes any folder structure
                 items.add(project.getFullDisplayName(), project.getFullName());
             }

@@ -6,7 +6,8 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Item;
 import hudson.model.listeners.ItemListener;
-import org.apache.tools.ant.util.StringUtils;
+
+import javax.inject.Inject;
 
 /**
  * React to changes being made on template projects
@@ -14,12 +15,15 @@ import org.apache.tools.ant.util.StringUtils;
 @Extension
 public class TemplateProjectListener extends ItemListener {
 
+    @Inject
+    private TemplateUtils templateUtils;
+
     @Override
     public void onUpdated(Item item) {
         TemplateProperty property = getTemplateProperty(item);
         if (property != null) {
             try {
-                TemplateUtils.handleTemplateSaved((AbstractProject) item, property);
+                templateUtils.handleTemplateSaved((AbstractProject) item, property);
             } catch (Exception e) {
                 throw Throwables.propagate(e);
             }
@@ -31,7 +35,7 @@ public class TemplateProjectListener extends ItemListener {
         TemplateProperty property = getTemplateProperty(item);
         if (property != null) {
             try {
-                TemplateUtils.handleTemplateDeleted((AbstractProject) item, property);
+                templateUtils.handleTemplateDeleted((AbstractProject) item, property);
             } catch (Exception e) {
                 throw Throwables.propagate(e);
             }
@@ -43,7 +47,7 @@ public class TemplateProjectListener extends ItemListener {
         TemplateProperty property = getTemplateProperty(item);
         if (property != null) {
             try {
-                TemplateUtils.handleTemplateRename((AbstractProject) item, property, oldFullName, newFullName);
+                templateUtils.handleTemplateRename((AbstractProject) item, property, oldFullName, newFullName);
             } catch (Exception e) {
                 throw Throwables.propagate(e);
             }

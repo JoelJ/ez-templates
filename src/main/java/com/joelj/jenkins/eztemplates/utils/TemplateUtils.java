@@ -10,6 +10,8 @@ import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.CopyOnWriteList;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import java.io.BufferedReader;
@@ -22,10 +24,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+@Singleton
 public class TemplateUtils {
     private static final Logger LOG = Logger.getLogger("ez-templates");
 
-    public static void handleTemplateSaved(AbstractProject templateProject, TemplateProperty property) throws IOException {
+    @Inject
+    private ProjectUtils projectUtils;
+
+    @Inject
+    private ReflectionUtils reflectionUtils;
+
+    public void handleTemplateSaved(AbstractProject templateProject, TemplateProperty property) throws IOException {
         LOG.info(String.format("Template [%s] was saved. Syncing implementations.", templateProject.getFullDisplayName()));
         for (AbstractProject impl : property.getImplementations()) {
             TemplateImplementationProperty implProperty = (TemplateImplementationProperty) impl.getProperty(TemplateImplementationProperty.class);
@@ -33,31 +42,31 @@ public class TemplateUtils {
         }
     }
 
-    public static void handleTemplateDeleted(AbstractProject templateProject, TemplateProperty property) throws IOException {
+    public void handleTemplateDeleted(AbstractProject templateProject, TemplateProperty property) throws IOException {
         LOG.info(String.format("Template [%s] was deleted.", templateProject.getFullDisplayName()));
         for (AbstractProject impl : property.getImplementations()) {
             LOG.info(String.format("Removing template from [%s].", impl.getFullDisplayName()));
             TemplateImplementationProperty implProperty = (TemplateImplementationProperty) impl.getProperty(TemplateImplementationProperty.class);
             impl.removeProperty(TemplateImplementationProperty.class);
-            ProjectUtils.silentSave(impl);
+            projectUtils.silentSave(impl);
         }
     }
 
-    public static void handleTemplateRename(AbstractProject templateProject, TemplateProperty property, String oldFullName, String newFullName) throws IOException {
+    public void handleTemplateRename(AbstractProject templateProject, TemplateProperty property, String oldFullName, String newFullName) throws IOException {
         LOG.info(String.format("Template [%s] was renamed. Updating implementations.", templateProject.getFullDisplayName()));
-        for (AbstractProject impl : TemplateProperty.getImplementations(oldFullName)) {
+        for (AbstractProject impl : property.getImplementations(oldFullName)) {
             LOG.info(String.format("Updating template in [%s].", impl.getFullDisplayName()));
             TemplateImplementationProperty implProperty = (TemplateImplementationProperty) impl.getProperty(TemplateImplementationProperty.class);
             if (oldFullName.equals(implProperty.getTemplateJobName())) {
                 implProperty.setTemplateJobName(newFullName);
-                ProjectUtils.silentSave(impl);
+                projectUtils.silentSave(impl);
             }
         }
     }
 
-    public static void handleTemplateImplementationSaved(AbstractProject implementationProject, TemplateImplementationProperty property) throws IOException {
+    public void handleTemplateImplementationSaved(AbstractProject implementationProject, TemplateImplementationProperty property) throws IOException {
         LOG.info(String.format("Implementation [%s] was saved. Syncing with [%s].", implementationProject.getFullDisplayName(), property.getTemplateJobName()));
-        AbstractProject templateProject = property.findTemplate();
+        AbstractProject templateProject = projectUtils.findProject(property.getTemplateJobName());
         if (templateProject == null) {
             throw new IllegalStateException(String.format("Cannot find template [%s] used by job [%s]", property.getTemplateJobName(), implementationProject.getFullDisplayName()));
         }
@@ -90,7 +99,7 @@ public class TemplateUtils {
         }
 
         if (!property.getSyncDisabled()) {
-            ReflectionUtils.setFieldValue(AbstractProject.class, implementationProject, "disabled", shouldBeDisabled);
+            reflectionUtils.setFieldValue(AbstractProject.class, implementationProject, "disabled", shouldBeDisabled);
         }
 
         if (oldAxisList != null && implementationProject instanceof MatrixProject && !property.getSyncMatrixAxis()) {
@@ -98,10 +107,10 @@ public class TemplateUtils {
         }
 
         if (!property.getSyncDescription() && description != null) {
-            ReflectionUtils.setFieldValue(AbstractItem.class, implementationProject, "description", description);
+            reflectionUtils.setFieldValue(AbstractItem.class, implementationProject, "description", description);
         }
 
-        ProjectUtils.silentSave(implementationProject);
+        projectUtils.silentSave(implementationProject);
     }
 
     /**
@@ -110,18 +119,18 @@ public class TemplateUtils {
      * @param matrixProject The project to set the Axis on.
      * @param axisList      The Axis list to set.
      */
-    private static void fixAxisList(MatrixProject matrixProject, AxisList axisList) {
+    private void fixAxisList(MatrixProject matrixProject, AxisList axisList) {
         if (axisList == null) {
             return; //The "axes" field can never be null. So just to be extra careful.
         }
-        ReflectionUtils.setFieldValue(MatrixProject.class, matrixProject, "axes", axisList);
+        reflectionUtils.setFieldValue(MatrixProject.class, matrixProject, "axes", axisList);
 
         //noinspection unchecked
-        ReflectionUtils.invokeMethod(MatrixProject.class, matrixProject, "rebuildConfigurations", ReflectionUtils.MethodParameter.get(MatrixBuild.MatrixBuildExecution.class, null));
+        reflectionUtils.invokeMethod(MatrixProject.class, matrixProject, "rebuildConfigurations", ReflectionUtils.MethodParameter.get(MatrixBuild.MatrixBuildExecution.class, null));
     }
 
-    private static void fixBuildTriggers(AbstractProject implementationProject, Map<TriggerDescriptor, Trigger> oldTriggers) {
-        List<Trigger<?>> triggersToReplace = ProjectUtils.getTriggers(implementationProject);
+    private void fixBuildTriggers(AbstractProject implementationProject, Map<TriggerDescriptor, Trigger> oldTriggers) {
+        List<Trigger<?>> triggersToReplace = projectUtils.getTriggers(implementationProject);
         if (triggersToReplace == null) {
             throw new NullPointerException("triggersToReplace");
         }
@@ -137,7 +146,7 @@ public class TemplateUtils {
         }
     }
 
-    private static void fixParameters(AbstractProject implementationProject, List<ParameterDefinition> oldImplementationParameters) throws IOException {
+    private void fixParameters(AbstractProject implementationProject, List<ParameterDefinition> oldImplementationParameters) throws IOException {
         List<ParameterDefinition> newImplementationParameters = findParameters(implementationProject);
 
         ParametersDefinitionProperty newParameterAction = findParametersToKeep(oldImplementationParameters, newImplementationParameters);
@@ -152,7 +161,7 @@ public class TemplateUtils {
         }
     }
 
-    private static ParametersDefinitionProperty findParametersToKeep(List<ParameterDefinition> oldImplementationParameters, List<ParameterDefinition> newImplementationParameters) {
+    private ParametersDefinitionProperty findParametersToKeep(List<ParameterDefinition> oldImplementationParameters, List<ParameterDefinition> newImplementationParameters) {
         List<ParameterDefinition> result = new LinkedList<ParameterDefinition>();
         for (ParameterDefinition newImplementationParameter : newImplementationParameters) { //'new' parameters are the same as the template.
             boolean found = false;
@@ -163,7 +172,7 @@ public class TemplateUtils {
                     found = true;
                     iterator.remove(); //Make the next iteration a little faster.
                     // #17 Description on parameters should always be overridden by template
-                    ReflectionUtils.setFieldValue(ParameterDefinition.class, oldImplementationParameter, "description", newImplementationParameter.getDescription());
+                    reflectionUtils.setFieldValue(ParameterDefinition.class, oldImplementationParameter, "description", newImplementationParameter.getDescription());
                     result.add(oldImplementationParameter);
                 }
             }
@@ -183,19 +192,19 @@ public class TemplateUtils {
         return result.isEmpty() ? null : new ParametersDefinitionProperty(result);
     }
 
-    private static AbstractProject synchronizeConfigFiles(AbstractProject implementationProject, AbstractProject templateProject) throws IOException {
+    private AbstractProject synchronizeConfigFiles(AbstractProject implementationProject, AbstractProject templateProject) throws IOException {
         File templateConfigFile = templateProject.getConfigFile().getFile();
         BufferedReader reader = new BufferedReader(new FileReader(templateConfigFile));
         try {
             Source source = new StreamSource(reader);
-            implementationProject = ProjectUtils.updateProjectWithXmlSource(implementationProject, source);
+            implementationProject = projectUtils.updateProjectWithXmlSource(implementationProject, source);
         } finally {
             reader.close();
         }
         return implementationProject;
     }
 
-    private static List<ParameterDefinition> findParameters(AbstractProject implementationProject) {
+    private List<ParameterDefinition> findParameters(AbstractProject implementationProject) {
         List<ParameterDefinition> definitions = new LinkedList<ParameterDefinition>();
         @SuppressWarnings("unchecked")
         ParametersDefinitionProperty parametersDefinitionProperty = (ParametersDefinitionProperty) implementationProject.getProperty(ParametersDefinitionProperty.class);
@@ -207,8 +216,8 @@ public class TemplateUtils {
         return definitions;
     }
 
-    private static void fixProperties(AbstractProject implementationProject, TemplateImplementationProperty property, boolean implementationIsTemplate) throws IOException {
-        CopyOnWriteList<JobProperty<?>> properties = ReflectionUtils.getFieldValue(Job.class, implementationProject, "properties");
+    private void fixProperties(AbstractProject implementationProject, TemplateImplementationProperty property, boolean implementationIsTemplate) throws IOException {
+        CopyOnWriteList<JobProperty<?>> properties = reflectionUtils.getFieldValue(Job.class, implementationProject, "properties");
         properties.add(property);
 
         if (!implementationIsTemplate) {

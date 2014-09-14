@@ -1,10 +1,12 @@
 package com.joelj.jenkins.eztemplates.utils;
 
 
+import javax.inject.Singleton;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+@Singleton
 public class ReflectionUtils {
     public static <T> T getFieldValue(Class c, Object instance, String name) {
         try {
