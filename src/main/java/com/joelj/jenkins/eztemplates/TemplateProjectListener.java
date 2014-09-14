@@ -20,7 +20,7 @@ public class TemplateProjectListener extends ItemListener {
 
     @Override
     public void onUpdated(Item item) {
-        TemplateProperty property = getTemplateProperty(item);
+        TemplateProperty property = TemplateProperty.from(item);
         if (property != null) {
             try {
                 templateUtils.handleTemplateSaved((AbstractProject) item, property);
@@ -32,7 +32,7 @@ public class TemplateProjectListener extends ItemListener {
 
     @Override
     public void onDeleted(Item item) {
-        TemplateProperty property = getTemplateProperty(item);
+        TemplateProperty property = TemplateProperty.from(item);
         if (property != null) {
             try {
                 templateUtils.handleTemplateDeleted((AbstractProject) item, property);
@@ -44,7 +44,7 @@ public class TemplateProjectListener extends ItemListener {
 
     @Override
     public void onLocationChanged(Item item, String oldFullName, String newFullName) {
-        TemplateProperty property = getTemplateProperty(item);
+        TemplateProperty property = TemplateProperty.from(item);
         if (property != null) {
             try {
                 templateUtils.handleTemplateRename((AbstractProject) item, property, oldFullName, newFullName);
@@ -52,17 +52,6 @@ public class TemplateProjectListener extends ItemListener {
                 throw Throwables.propagate(e);
             }
         }
-    }
-
-    /**
-     * @param item A changed project
-     * @return null if this is not a template project
-     */
-    private static TemplateProperty getTemplateProperty(Item item) {
-        if (item instanceof AbstractProject) {
-            return (TemplateProperty) ((AbstractProject) item).getProperty(TemplateProperty.class);
-        }
-        return null;
     }
 
 }

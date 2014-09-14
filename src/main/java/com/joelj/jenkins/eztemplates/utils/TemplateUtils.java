@@ -37,8 +37,7 @@ public class TemplateUtils {
     public void handleTemplateSaved(AbstractProject templateProject, TemplateProperty property) throws IOException {
         LOG.info(String.format("Template [%s] was saved. Syncing implementations.", templateProject.getFullDisplayName()));
         for (AbstractProject impl : property.getImplementations()) {
-            TemplateImplementationProperty implProperty = (TemplateImplementationProperty) impl.getProperty(TemplateImplementationProperty.class);
-            handleTemplateImplementationSaved(impl, implProperty);
+            handleTemplateImplementationSaved(impl, TemplateImplementationProperty.from(impl));
         }
     }
 
@@ -46,7 +45,6 @@ public class TemplateUtils {
         LOG.info(String.format("Template [%s] was deleted.", templateProject.getFullDisplayName()));
         for (AbstractProject impl : property.getImplementations()) {
             LOG.info(String.format("Removing template from [%s].", impl.getFullDisplayName()));
-            TemplateImplementationProperty implProperty = (TemplateImplementationProperty) impl.getProperty(TemplateImplementationProperty.class);
             impl.removeProperty(TemplateImplementationProperty.class);
             projectUtils.silentSave(impl);
         }
@@ -56,7 +54,7 @@ public class TemplateUtils {
         LOG.info(String.format("Template [%s] was renamed. Updating implementations.", templateProject.getFullDisplayName()));
         for (AbstractProject impl : property.getImplementations(oldFullName)) {
             LOG.info(String.format("Updating template in [%s].", impl.getFullDisplayName()));
-            TemplateImplementationProperty implProperty = (TemplateImplementationProperty) impl.getProperty(TemplateImplementationProperty.class);
+            TemplateImplementationProperty implProperty = TemplateImplementationProperty.from(impl);
             if (oldFullName.equals(implProperty.getTemplateJobName())) {
                 implProperty.setTemplateJobName(newFullName);
                 projectUtils.silentSave(impl);
@@ -73,7 +71,7 @@ public class TemplateUtils {
 
         //Capture values we want to keep
         @SuppressWarnings("unchecked")
-        boolean implementationIsTemplate = implementationProject.getProperty(TemplateProperty.class) != null;
+        boolean implementationIsTemplate = TemplateProperty.from(implementationProject) != null;
         List<ParameterDefinition> oldImplementationParameters = findParameters(implementationProject);
         @SuppressWarnings("unchecked")
         Map<TriggerDescriptor, Trigger> oldTriggers = implementationProject.getTriggers();

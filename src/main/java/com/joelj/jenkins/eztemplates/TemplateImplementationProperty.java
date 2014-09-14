@@ -3,6 +3,7 @@ package com.joelj.jenkins.eztemplates;
 import com.joelj.jenkins.eztemplates.utils.ProjectUtils;
 import hudson.Extension;
 import hudson.model.AbstractProject;
+import hudson.model.Item;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
 import hudson.util.FormValidation;
@@ -14,11 +15,29 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.util.logging.Logger;
 
 public class TemplateImplementationProperty extends JobProperty<AbstractProject<?, ?>> {
     private static final Logger LOG = Logger.getLogger("ez-templates");
+
+    /**
+     * @return null if this is not a template implementation project
+     */
+    public static TemplateImplementationProperty from(Item item) {
+        if (item instanceof AbstractProject) {
+            return from((AbstractProject) item);
+        }
+        return null;
+    }
+
+    /**
+     * @return null if this is not a template implementation project
+     */
+    public static TemplateImplementationProperty from(@Nonnull AbstractProject project) {
+        return (TemplateImplementationProperty) project.getProperty(TemplateImplementationProperty.class);
+    }
 
     private String templateJobName;
     private final boolean syncMatrixAxis;
