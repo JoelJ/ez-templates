@@ -55,6 +55,20 @@ public class TemplateUtils {
         }
     }
 
+    public static void handleTemplateCopied(AbstractProject copy, AbstractProject original) throws IOException {
+        LOG.info(String.format("Template [%s] was copied to [%s]. Forcing new project to be an implementation of the original.",original.getFullDisplayName(), copy.getFullDisplayName()));
+        copy.removeProperty(TemplateProperty.class);
+        copy.removeProperty(TemplateImplementationProperty.class);
+        TemplateImplementationProperty implProperty = new TemplateImplementationProperty(
+                original.getFullName(),
+                false,
+                false,
+                false,
+                false
+        );
+        copy.addProperty(implProperty);
+    }
+
     public static void handleTemplateImplementationSaved(AbstractProject implementationProject, TemplateImplementationProperty property) throws IOException {
         LOG.info(String.format("Implementation [%s] was saved. Syncing with [%s].", implementationProject.getFullDisplayName(), property.getTemplateJobName()));
         AbstractProject templateProject = property.findTemplate();
