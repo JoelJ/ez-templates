@@ -50,6 +50,18 @@ public class TemplateProjectListener extends ItemListener {
         }
     }
 
+    @Override
+    public void onCopied(Item src, Item item) {
+        TemplateProperty property = getTemplateProperty(item);
+        if (property != null) {
+            try {
+                TemplateUtils.handleTemplateCopied((AbstractProject) item, (AbstractProject) src);
+            } catch (Exception e) {
+                throw Throwables.propagate(e);
+            }
+        }
+    }
+
     /**
      * @param item A changed project
      * @return null if this is not a template project
