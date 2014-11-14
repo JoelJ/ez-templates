@@ -78,7 +78,6 @@ public class ProjectUtils {
      */
     @SuppressWarnings("unchecked")
     public static AbstractProject updateProjectWithXmlSource(AbstractProject project, Source source) throws IOException {
-        String projectName = project.getName();
 
         XmlFile configXmlFile = project.getConfigFile();
         AtomicFileWriter out = new AtomicFileWriter(configXmlFile.getFile());
@@ -103,7 +102,7 @@ public class ProjectUtils {
 
             // if everything went well, commit this new version
             out.commit();
-            return ProjectUtils.findProject(projectName);
+            return ProjectUtils.findProject(project.getFullName());
         } finally {
             out.abort(); // don't leave anything behind
         }
