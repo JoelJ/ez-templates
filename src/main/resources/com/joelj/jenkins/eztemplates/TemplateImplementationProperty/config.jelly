@@ -4,6 +4,8 @@
 		<f:entry field="templateJobName" title="${%Name of template}">
 			<f:select />
 		</f:entry>
+
+		<f:advanced>
 		<f:entry field="syncDescription" title="${%Sync Description}">
 			<f:checkbox />
 		</f:entry>
@@ -16,5 +18,9 @@
 		<f:entry field="syncMatrixAxis" title="${%Sync Matrix Axis Configuration}">
 			<f:checkbox />
 		</f:entry>
+		<f:entry field="syncSecurity" title="${%Sync Security}">
+			<f:checkbox />
+		</f:entry>
+		</f:advanced>
 	</f:optionalBlock>
 </j:jelly>
