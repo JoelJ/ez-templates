@@ -24,14 +24,16 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
     private final boolean syncDescription;
     private final boolean syncBuildTriggers;
     private final boolean syncDisabled;
+    private final boolean syncSecurity;
 
     @DataBoundConstructor
-    public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis, boolean syncDescription, boolean syncBuildTriggers, boolean syncDisabled) {
+    public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis, boolean syncDescription, boolean syncBuildTriggers, boolean syncDisabled, boolean syncSecurity) {
         this.templateJobName = templateJobName;
         this.syncMatrixAxis = syncMatrixAxis;
         this.syncDescription = syncDescription;
         this.syncBuildTriggers = syncBuildTriggers;
         this.syncDisabled = syncDisabled;
+        this.syncSecurity = syncSecurity;
     }
 
     @Exported
@@ -60,6 +62,10 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
         return syncDisabled;
     }
 
+    public boolean getSyncSecurity() {
+        return syncSecurity;
+    }
+
     public AbstractProject findTemplate() {
         return ProjectUtils.findProject(getTemplateJobName());
     }
@@ -76,8 +82,9 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
                 boolean syncDescription = useTemplate.getBoolean("syncDescription");
                 boolean syncBuildTriggers = useTemplate.getBoolean("syncBuildTriggers");
                 boolean syncDisabled = useTemplate.getBoolean("syncDisabled");
+                boolean syncSecurity = useTemplate.getBoolean("syncSecurity");
 
-                return new TemplateImplementationProperty(templateJobName, syncMatrixAxis, syncDescription, syncBuildTriggers, syncDisabled);
+                return new TemplateImplementationProperty(templateJobName, syncMatrixAxis, syncDescription, syncBuildTriggers, syncDisabled, syncSecurity);
             }
 
             return null;
