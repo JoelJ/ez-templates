@@ -1,9 +1,10 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
 	<f:optionalBlock name="useTemplate" title="${%Use another job as a template}" checked="${instance != null}">
-
+		
 		<f:entry field="templateJobName" title="${%Name of template}">
 			<f:select />
+			
 			<f:description>
 				<j:if test="${instance.templateJobName != null}">
 					<j:set var="template" value="${instance.findTemplate()}" />				
@@ -12,24 +13,36 @@
 					</j:if>		
 				</j:if>		
 			</f:description>
+			
 		</f:entry>
+<<<<<<< .merge_file_996BS0
 
 		<f:advanced>
-			<f:entry field="syncDescription" title="${%Sync Description}">
-				<f:checkbox />
-			</f:entry>
-			<f:entry field="syncBuildTriggers" title="${%Sync Build Triggers}">
-				<f:checkbox />
-			</f:entry>
-			<f:entry field="syncDisabled" title="${%Sync Enabled/Disabled State}">
-				<f:checkbox />
-			</f:entry>
-			<f:entry field="syncMatrixAxis" title="${%Sync Matrix Axis Configuration}">
-				<f:checkbox />
-			</f:entry>
-			<f:entry field="syncSecurity" title="${%Sync Project-Based Security}">
-				<f:checkbox />
-			</f:entry>
+=======
+		
+>>>>>>> .merge_file_mzwfZ0
+		<f:entry field="syncDescription" title="${%Sync Description}">
+			<f:checkbox />
+		</f:entry>
+		
+		<f:entry field="syncBuildTriggers" title="${%Sync Build Triggers}">
+			<f:checkbox />
+		</f:entry>
+		
+		<f:entry field="syncDisabled" title="${%Sync Enabled/Disabled State}">
+			<f:checkbox />
+		</f:entry>
+		
+		<f:entry field="syncMatrixAxis" title="${%Sync Matrix Axis Configuration}">
+			<f:checkbox />
+		</f:entry>
+<<<<<<< .merge_file_996BS0
+		<f:entry field="syncSecurity" title="${%Sync Project-Based Security}">
+			<f:checkbox />
+		</f:entry>
 		</f:advanced>
+=======
+		
+>>>>>>> .merge_file_mzwfZ0
 	</f:optionalBlock>
 </j:jelly>
