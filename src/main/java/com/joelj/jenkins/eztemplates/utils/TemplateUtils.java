@@ -2,6 +2,7 @@ package com.joelj.jenkins.eztemplates.utils;
 
 import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
 import com.joelj.jenkins.eztemplates.TemplateProperty;
+
 import hudson.matrix.AxisList;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
@@ -13,14 +14,18 @@ import hudson.security.*;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
+
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 public class TemplateUtils {
@@ -66,7 +71,8 @@ public class TemplateUtils {
                 false,
                 false,
                 false,
-                false
+                false,
+                ""   //TODO To be checked
         );
         copy.addProperty(implProperty);
     }
@@ -111,6 +117,10 @@ public class TemplateUtils {
         fixProperties(implementationProject, property, implementationIsTemplate);
         fixParameters(implementationProject, oldImplementationParameters);
 
+        if (!property.getTemplateVariables().isEmpty()) {
+            replaceTemplateVariables(implementationProject, property.getTemplateVariables());
+        }        
+        
         if (!property.getSyncBuildTriggers()) {
             fixBuildTriggers(implementationProject, oldTriggers);
         }
@@ -126,6 +136,8 @@ public class TemplateUtils {
         if (!property.getSyncDescription() && description != null) {
             ReflectionUtils.setFieldValue(AbstractItem.class, implementationProject, "description", description);
         }
+        
+        
 
         if (!property.getSyncSecurity() && oldAuthMatrixProperty != null) {
             implementationProject.removeProperty(AuthorizationMatrixProperty.class);
@@ -134,6 +146,27 @@ public class TemplateUtils {
 
         ProjectUtils.silentSave(implementationProject);
     }
+
+	private static void replaceTemplateVariables(AbstractProject implementationProject, String templateVariables) {
+		Properties prop = new Properties();
+
+		// create a new reader
+		StringReader reader = new StringReader(templateVariables);
+
+		try {
+		   // load from input stream
+		   prop.load(reader);
+
+		   LOG.info(String.format("Properties"));
+		   for(String key : prop.stringPropertyNames()) {
+			   LOG.info(String.format("* Key [%s] = [%s]", key, prop.getProperty(key)));
+		   }
+		   
+		   
+		} catch (IOException ex) {
+		   ex.printStackTrace();
+		}
+	}
 
     /**
      * Inlined from {@link MatrixProject#setAxes(hudson.matrix.AxisList)} except it doesn't call save.
@@ -217,6 +250,15 @@ public class TemplateUtils {
     private static AbstractProject synchronizeConfigFiles(AbstractProject implementationProject, AbstractProject templateProject) throws IOException {
         File templateConfigFile = templateProject.getConfigFile().getFile();
         BufferedReader reader = new BufferedReader(new FileReader(templateConfigFile));
+        
+  
+//        
+//        String line;
+//        while ((line = reader.readLine()) != null) {
+//            line.replaceAll("#\\{.+\\}", "TO_BE_DEFINED");
+//            
+//        }
+        
         try {
             Source source = new StreamSource(reader);
             implementationProject = ProjectUtils.updateProjectWithXmlSource(implementationProject, source);

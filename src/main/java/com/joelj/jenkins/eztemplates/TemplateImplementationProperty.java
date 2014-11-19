@@ -25,15 +25,18 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
     private final boolean syncBuildTriggers;
     private final boolean syncDisabled;
     private final boolean syncSecurity;
+    private final String templateVariables;
 
     @DataBoundConstructor
-    public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis, boolean syncDescription, boolean syncBuildTriggers, boolean syncDisabled, boolean syncSecurity) {
+    public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis, boolean syncDescription, boolean syncBuildTriggers, boolean syncDisabled, boolean syncSecurity, String templateVariables) {
+
         this.templateJobName = templateJobName;
         this.syncMatrixAxis = syncMatrixAxis;
         this.syncDescription = syncDescription;
         this.syncBuildTriggers = syncBuildTriggers;
         this.syncDisabled = syncDisabled;
         this.syncSecurity = syncSecurity;
+        this.templateVariables = templateVariables;
     }
 
     @Exported
@@ -61,10 +64,15 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
     public boolean getSyncDisabled() {
         return syncDisabled;
     }
+    
 
     public boolean getSyncSecurity() {
         return syncSecurity;
     }
+
+    public String getTemplateVariables() {
+        return templateVariables;
+    }   
 
     public AbstractProject findTemplate() {
         return ProjectUtils.findProject(getTemplateJobName());
@@ -83,8 +91,9 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
                 boolean syncBuildTriggers = useTemplate.getBoolean("syncBuildTriggers");
                 boolean syncDisabled = useTemplate.getBoolean("syncDisabled");
                 boolean syncSecurity = useTemplate.getBoolean("syncSecurity");
+                String templateVariables = useTemplate.getString("templateVariables");
 
-                return new TemplateImplementationProperty(templateJobName, syncMatrixAxis, syncDescription, syncBuildTriggers, syncDisabled, syncSecurity);
+                return new TemplateImplementationProperty(templateJobName, syncMatrixAxis, syncDescription, syncBuildTriggers, syncDisabled, syncSecurity, templateVariables);
             }
 
             return null;
