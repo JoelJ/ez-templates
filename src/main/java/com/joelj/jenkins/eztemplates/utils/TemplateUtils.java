@@ -9,6 +9,7 @@ import hudson.model.*;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.CopyOnWriteList;
+import hudson.security.*;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -64,6 +65,7 @@ public class TemplateUtils {
                 false,
                 false,
                 false,
+                false,
                 false
         );
         copy.addProperty(implProperty);
@@ -93,6 +95,7 @@ public class TemplateUtils {
         Map<TriggerDescriptor, Trigger> oldTriggers = implementationProject.getTriggers();
         boolean shouldBeDisabled = implementationProject.isDisabled();
         String description = implementationProject.getDescription();
+        AuthorizationMatrixProperty oldAuthMatrixProperty = (AuthorizationMatrixProperty) implementationProject.getProperty(AuthorizationMatrixProperty.class);
 
         AxisList oldAxisList = null;
         if (implementationProject instanceof MatrixProject && !property.getSyncMatrixAxis()) {
@@ -122,6 +125,11 @@ public class TemplateUtils {
 
         if (!property.getSyncDescription() && description != null) {
             ReflectionUtils.setFieldValue(AbstractItem.class, implementationProject, "description", description);
+        }
+
+        if (!property.getSyncSecurity() && oldAuthMatrixProperty != null) {
+            implementationProject.removeProperty(AuthorizationMatrixProperty.class);
+            implementationProject.addProperty(oldAuthMatrixProperty);
         }
 
         ProjectUtils.silentSave(implementationProject);
