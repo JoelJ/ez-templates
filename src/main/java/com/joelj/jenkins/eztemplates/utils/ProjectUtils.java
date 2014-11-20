@@ -39,8 +39,11 @@ import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
+import java.util.logging.Logger;
 
 public class ProjectUtils {
+	private static final Logger LOG = Logger.getLogger("ez-templates");	
 
     public static Collection<AbstractProject> findProjectsWithProperty(final Class<? extends JobProperty<?>> property) {
         List<AbstractProject> projects = Jenkins.getInstance().getAllItems(AbstractProject.class);
@@ -89,15 +92,7 @@ public class ProjectUtils {
         project.getConfigFile().write(project);
     }
 
-    private static Characters getNewCharactersEvent(XMLEventFactory m_eventFactory, Characters event) {
-    	return m_eventFactory.createCharacters(event.getData().replaceAll("#\\{.+\\}", "TO_BE_DEFINED"));
-//        if (event.getData().equalsIgnoreCase("Name1")) {
-//            return m_eventFactory.createCharacters(Calendar.getInstance().getTime().toString());
-//            reader.getText().replaceAll("#\\{.+\\}", "TO_BE_DEFINED");
-//        } else {
-//            return event;
-//        }
-    }         
+     
     
     /**
      * Copied from {@link AbstractProject#updateByXml(javax.xml.transform.Source)}, removing the save event and
@@ -106,77 +101,41 @@ public class ProjectUtils {
      * @throws XMLStreamException 
      */
     @SuppressWarnings("unchecked")
-    public static AbstractProject updateProjectWithXmlSource(AbstractProject project, Source source) throws IOException {
+    public static AbstractProject updateProjectWithXmlSource(AbstractProject project, Source source, String templateVariables) throws IOException {
 
         XmlFile configXmlFile = project.getConfigFile();
         AtomicFileWriter out = new AtomicFileWriter(configXmlFile.getFile());
         try {
-        	InputStream xsltFileStream = null;
+        	
             try {         
-            	
+	                // this allows us to use UTF-8 for storing data, plus it checks any well-formedness issue in the submitted data            	
             		XMLEventFactory m_eventFactory = XMLEventFactory.newInstance();
                                                   
                     XMLEventReader reader = XMLInputFactory.newInstance().createXMLEventReader(source);
                     XMLEventWriter writer = XMLOutputFactory.newInstance().createXMLEventWriter(out);
+                    
+                    Properties prop = TemplateVariablesUtils.processProperties(templateVariables);
 
                     while (reader.hasNext()) {
                         XMLEvent event = (XMLEvent) reader.next();
 
                         if (event.getEventType() == event.CHARACTERS) {
-                            writer.add(getNewCharactersEvent(m_eventFactory, event.asCharacters()));
+                        	
+                        	String str = event.asCharacters().getData();                        	
+                        	
+                        	str = TemplateVariablesUtils.interpolateVariables(prop, str);
+                        	
+                            writer.add(m_eventFactory.createCharacters(str));
+
                         } else {
                             writer.add(event);
                         }
                     }
                     writer.flush();
-//                }
-                   	
-            	
-//                XMLInputFactory factory = XMLInputFactory.newInstance();
-//                XMLEventReader reader = null;
-//                XMLEventWriter writer = XMLOutputFactory.newInstance().createXMLEventWriter(out);
-//				try {
-//					//reader = factory.createXMLStreamReader(source);
-//					reader = factory.createXMLEventReader(source);
-//				} catch (XMLStreamException e1) {
-//					// TODO Auto-generated catch block
-//					e1.printStackTrace();
-//				}
-//                try {
-//					while (reader.hasNext()) {
-//					    int next = reader.next();
-//					    switch (next) {
-//					        case XMLStreamConstants.CHARACTERS: {
-//					            String text = reader.getText().replaceAll("#\\{.+\\}", "TO_BE_DEFINED");
-//
-//					            out.write(text);
-//					            break;
-//					        }
-//					        default:
-//					        	out.write(reader.getText());
-//					    }            	
-//					}
-//				} catch (XMLStreamException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//            	xsltFileStream = ProjectUtils.class.getResourceAsStream("/ReplaceTemplate.xsl");
-//            	
-//            	Source xsltSource = new StreamSource(xsltFileStream);            	
-                // this allows us to use UTF-8 for storing data,
-                // plus it checks any well-formedness issue in the submitted
-                // data
-//                Transformer t = TransformerFactory.newInstance().newTransformer();
-//                t.transform(source, new StreamResult(out));
-                
-                
-//            } catch (TransformerException e) {
-//                throw new IOException2("Failed to persist configuration.xml", e);
+                    out.close();
+                    
             } catch (Exception e) {
-            	throw new RuntimeException(e);  // FIXME Re-throw 
-            } finally {
-            	//xsltFileStream.close();
-            	out.close();            	
+            	throw new IOException2("Failed to persist configuration.xml", e); 
             }
 
             // try to reflect the changes by reloading
