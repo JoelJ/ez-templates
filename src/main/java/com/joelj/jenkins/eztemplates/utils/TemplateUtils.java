@@ -10,6 +10,7 @@ import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.CopyOnWriteList;
 import hudson.security.*;
+import hudson.scm.SCM;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -66,7 +67,8 @@ public class TemplateUtils {
                 false,
                 false,
                 false,
-                false
+                false,
+                true
         );
         copy.addProperty(implProperty);
     }
@@ -96,6 +98,7 @@ public class TemplateUtils {
         boolean shouldBeDisabled = implementationProject.isDisabled();
         String description = implementationProject.getDescription();
         AuthorizationMatrixProperty oldAuthMatrixProperty = (AuthorizationMatrixProperty) implementationProject.getProperty(AuthorizationMatrixProperty.class);
+        SCM oldScm = (SCM) implementationProject.getScm();
 
         AxisList oldAxisList = null;
         if (implementationProject instanceof MatrixProject && !property.getSyncMatrixAxis()) {
@@ -130,6 +133,10 @@ public class TemplateUtils {
         if (!property.getSyncSecurity() && oldAuthMatrixProperty != null) {
             implementationProject.removeProperty(AuthorizationMatrixProperty.class);
             implementationProject.addProperty(oldAuthMatrixProperty);
+        }
+
+        if (!property.getSyncScm() && oldScm != null) {
+            implementationProject.setScm(oldScm);
         }
 
         ProjectUtils.silentSave(implementationProject);
