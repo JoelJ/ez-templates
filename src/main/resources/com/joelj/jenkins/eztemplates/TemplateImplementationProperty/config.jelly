@@ -30,6 +30,9 @@
 			<f:entry field="syncSecurity" title="${%Sync Project-Based Security}">
 				<f:checkbox />
 			</f:entry>
-		</f:advanced>
+			<f:entry field="syncScm" title="${%Sync Source Control Mgmt}">
+				<f:checkbox default="true" />
+			</f:entry>
+                </f:advanced>
 	</f:optionalBlock>
 </j:jelly>
