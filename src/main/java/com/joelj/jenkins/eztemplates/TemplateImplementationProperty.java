@@ -1,6 +1,8 @@
 package com.joelj.jenkins.eztemplates;
 
 import com.joelj.jenkins.eztemplates.utils.ProjectUtils;
+
+
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.JobProperty;
@@ -8,12 +10,14 @@ import hudson.model.JobPropertyDescriptor;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import net.sf.json.JSONObject;
+
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.export.Exported;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 public class TemplateImplementationProperty extends JobProperty<AbstractProject<?, ?>> {
@@ -25,15 +29,18 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
     private final boolean syncBuildTriggers;
     private final boolean syncDisabled;
     private final boolean syncSecurity;
+    private final String templateVariables;
 
     @DataBoundConstructor
-    public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis, boolean syncDescription, boolean syncBuildTriggers, boolean syncDisabled, boolean syncSecurity) {
+    public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis, boolean syncDescription, boolean syncBuildTriggers, boolean syncDisabled, boolean syncSecurity, String templateVariables) {
+
         this.templateJobName = templateJobName;
         this.syncMatrixAxis = syncMatrixAxis;
         this.syncDescription = syncDescription;
         this.syncBuildTriggers = syncBuildTriggers;
         this.syncDisabled = syncDisabled;
         this.syncSecurity = syncSecurity;
+        this.templateVariables = templateVariables;
     }
 
     @Exported
@@ -61,10 +68,15 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
     public boolean getSyncDisabled() {
         return syncDisabled;
     }
+    
 
     public boolean getSyncSecurity() {
         return syncSecurity;
     }
+
+    public String getTemplateVariables() {
+        return templateVariables;
+    }   
 
     public AbstractProject findTemplate() {
         return ProjectUtils.findProject(getTemplateJobName());
@@ -83,8 +95,9 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
                 boolean syncBuildTriggers = useTemplate.getBoolean("syncBuildTriggers");
                 boolean syncDisabled = useTemplate.getBoolean("syncDisabled");
                 boolean syncSecurity = useTemplate.getBoolean("syncSecurity");
+                String templateVariables = useTemplate.getString("templateVariables");
 
-                return new TemplateImplementationProperty(templateJobName, syncMatrixAxis, syncDescription, syncBuildTriggers, syncDisabled, syncSecurity);
+                return new TemplateImplementationProperty(templateJobName, syncMatrixAxis, syncDescription, syncBuildTriggers, syncDisabled, syncSecurity, templateVariables);
             }
 
             return null;

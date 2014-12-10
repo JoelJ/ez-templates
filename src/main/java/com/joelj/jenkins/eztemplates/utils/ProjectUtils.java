@@ -2,6 +2,7 @@ package com.joelj.jenkins.eztemplates.utils;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+
 import hudson.XmlFile;
 import hudson.model.AbstractProject;
 import hudson.model.Items;
@@ -10,20 +11,39 @@ import hudson.triggers.Trigger;
 import hudson.util.AtomicFileWriter;
 import hudson.util.IOException2;
 import jenkins.model.Jenkins;
+
 import org.kohsuke.stapler.Ancestor;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
+import java.util.logging.Logger;
 
 public class ProjectUtils {
+	private static final Logger LOG = Logger.getLogger("ez-templates");	
 
     public static Collection<AbstractProject> findProjectsWithProperty(final Class<? extends JobProperty<?>> property) {
         List<AbstractProject> projects = Jenkins.getInstance().getAllItems(AbstractProject.class);
@@ -72,27 +92,50 @@ public class ProjectUtils {
         project.getConfigFile().write(project);
     }
 
+     
+    
     /**
      * Copied from {@link AbstractProject#updateByXml(javax.xml.transform.Source)}, removing the save event and
      * returning the project after the update.
+     * @throws FactoryConfigurationError 
+     * @throws XMLStreamException 
      */
     @SuppressWarnings("unchecked")
-    public static AbstractProject updateProjectWithXmlSource(AbstractProject project, Source source) throws IOException {
+    public static AbstractProject updateProjectWithXmlSource(AbstractProject project, Source source, String templateVariables) throws IOException {
 
         XmlFile configXmlFile = project.getConfigFile();
         AtomicFileWriter out = new AtomicFileWriter(configXmlFile.getFile());
         try {
-            try {
-                // this allows us to use UTF-8 for storing data,
-                // plus it checks any well-formedness issue in the submitted
-                // data
-                Transformer t = TransformerFactory.newInstance()
-                        .newTransformer();
-                t.transform(source,
-                        new StreamResult(out));
-                out.close();
-            } catch (TransformerException e) {
-                throw new IOException2("Failed to persist configuration.xml", e);
+        	
+            try {         
+	                // this allows us to use UTF-8 for storing data, plus it checks any well-formedness issue in the submitted data            	
+            		XMLEventFactory m_eventFactory = XMLEventFactory.newInstance();
+                                                  
+                    XMLEventReader reader = XMLInputFactory.newInstance().createXMLEventReader(source);
+                    XMLEventWriter writer = XMLOutputFactory.newInstance().createXMLEventWriter(out);
+                    
+                    Properties prop = TemplateVariablesUtils.processProperties(templateVariables);
+
+                    while (reader.hasNext()) {
+                        XMLEvent event = (XMLEvent) reader.next();
+
+                        if (event.getEventType() == event.CHARACTERS) {
+                        	
+                        	String str = event.asCharacters().getData();                        	
+                        	
+                        	str = TemplateVariablesUtils.interpolateVariables(prop, str);
+                        	
+                            writer.add(m_eventFactory.createCharacters(str));
+
+                        } else {
+                            writer.add(event);
+                        }
+                    }
+                    writer.flush();
+                    out.close();
+                    
+            } catch (Exception e) {
+            	throw new IOException2("Failed to persist configuration.xml", e); 
             }
 
             // try to reflect the changes by reloading

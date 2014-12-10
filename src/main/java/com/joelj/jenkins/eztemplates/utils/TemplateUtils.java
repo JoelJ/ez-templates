@@ -2,6 +2,7 @@ package com.joelj.jenkins.eztemplates.utils;
 
 import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
 import com.joelj.jenkins.eztemplates.TemplateProperty;
+
 import hudson.matrix.AxisList;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
@@ -13,14 +14,18 @@ import hudson.security.*;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
+
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 public class TemplateUtils {
@@ -66,7 +71,8 @@ public class TemplateUtils {
                 false,
                 false,
                 false,
-                false
+                false,
+                ""   //TODO To be checked
         );
         copy.addProperty(implProperty);
     }
@@ -103,7 +109,7 @@ public class TemplateUtils {
             oldAxisList = matrixProject.getAxes();
         }
 
-        implementationProject = synchronizeConfigFiles(implementationProject, templateProject);
+        implementationProject = synchronizeConfigFiles(implementationProject, templateProject, property.getTemplateVariables() );
 
         // Reverse all the fields that we've marked as "Don't Sync" so that they appear that they haven't changed.
 
@@ -125,7 +131,8 @@ public class TemplateUtils {
 
         if (!property.getSyncDescription() && description != null) {
             ReflectionUtils.setFieldValue(AbstractItem.class, implementationProject, "description", description);
-        }
+        }        
+        
 
         if (!property.getSyncSecurity() && oldAuthMatrixProperty != null) {
             implementationProject.removeProperty(AuthorizationMatrixProperty.class);
@@ -134,6 +141,7 @@ public class TemplateUtils {
 
         ProjectUtils.silentSave(implementationProject);
     }
+    
 
     /**
      * Inlined from {@link MatrixProject#setAxes(hudson.matrix.AxisList)} except it doesn't call save.
@@ -214,12 +222,13 @@ public class TemplateUtils {
         return result.isEmpty() ? null : new ParametersDefinitionProperty(result);
     }
 
-    private static AbstractProject synchronizeConfigFiles(AbstractProject implementationProject, AbstractProject templateProject) throws IOException {
+    private static AbstractProject synchronizeConfigFiles(AbstractProject implementationProject, AbstractProject templateProject, String templateVariables) throws IOException {
         File templateConfigFile = templateProject.getConfigFile().getFile();
-        BufferedReader reader = new BufferedReader(new FileReader(templateConfigFile));
+        BufferedReader reader = new BufferedReader(new FileReader(templateConfigFile));       
+        
         try {
             Source source = new StreamSource(reader);
-            implementationProject = ProjectUtils.updateProjectWithXmlSource(implementationProject, source);
+            implementationProject = ProjectUtils.updateProjectWithXmlSource(implementationProject, source, templateVariables);
         } finally {
             reader.close();
         }

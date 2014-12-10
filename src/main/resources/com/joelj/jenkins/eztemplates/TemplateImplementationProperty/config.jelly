@@ -14,6 +14,11 @@
 			</f:description>
 		</f:entry>
 
+		<f:entry field="templateVariables" title="${%Template variables}">
+			<f:textarea />
+		</f:entry>
+
+		
 		<f:advanced>
 			<f:entry field="syncDescription" title="${%Sync Description}">
 				<f:checkbox />
@@ -31,5 +36,7 @@
 				<f:checkbox />
 			</f:entry>
 		</f:advanced>
+
+		
 	</f:optionalBlock>
 </j:jelly>
