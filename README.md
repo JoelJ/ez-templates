@@ -1,3 +1,5 @@
+[![Build Status](https://buildhive.cloudbees.com/job/JoelJ/job/ez-templates/badge/icon)](https://buildhive.cloudbees.com/job/JoelJ/job/ez-templates/)
+
 Allows you to use any job as a template for another job with overridable parameters.
 
 Creating a Template
