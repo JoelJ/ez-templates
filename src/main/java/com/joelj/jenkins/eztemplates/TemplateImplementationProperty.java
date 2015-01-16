@@ -25,15 +25,17 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
     private final boolean syncBuildTriggers;
     private final boolean syncDisabled;
     private final boolean syncSecurity;
+    private final boolean syncScm;
 
     @DataBoundConstructor
-    public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis, boolean syncDescription, boolean syncBuildTriggers, boolean syncDisabled, boolean syncSecurity) {
+    public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis, boolean syncDescription, boolean syncBuildTriggers, boolean syncDisabled, boolean syncSecurity, boolean syncScm) {
         this.templateJobName = templateJobName;
         this.syncMatrixAxis = syncMatrixAxis;
         this.syncDescription = syncDescription;
         this.syncBuildTriggers = syncBuildTriggers;
         this.syncDisabled = syncDisabled;
         this.syncSecurity = syncSecurity;
+        this.syncScm = syncScm;
     }
 
     @Exported
@@ -66,6 +68,10 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
         return syncSecurity;
     }
 
+    public boolean getSyncScm() {
+        return syncScm;
+    }
+
     public AbstractProject findTemplate() {
         return ProjectUtils.findProject(getTemplateJobName());
     }
@@ -83,8 +89,9 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
                 boolean syncBuildTriggers = useTemplate.getBoolean("syncBuildTriggers");
                 boolean syncDisabled = useTemplate.getBoolean("syncDisabled");
                 boolean syncSecurity = useTemplate.getBoolean("syncSecurity");
+                boolean syncScm = useTemplate.getBoolean("syncScm");
 
-                return new TemplateImplementationProperty(templateJobName, syncMatrixAxis, syncDescription, syncBuildTriggers, syncDisabled, syncSecurity);
+                return new TemplateImplementationProperty(templateJobName, syncMatrixAxis, syncDescription, syncBuildTriggers, syncDisabled, syncSecurity, syncScm);
             }
 
             return null;
