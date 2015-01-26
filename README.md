@@ -11,10 +11,10 @@ A template can be a fully runnable job in its own right or left disabled and use
 
 Using a Template
 ================
-Any Jenkins job can inherit from a template of the same job type 
+Any Jenkins job can inherit from a template of the same job type.  The same job type is important, for example, if your template's job type is maven, then the new job type should also be maven.  
 * Select "Use another job as a template" and enter the template's name
     * Ensure "Allow this job to be used as a template" is _not_ checked
-* Click Apply. 
+* Click Apply.  When you open the job after this, you will see the configuration copied in from the template.  On the lower left, there will be a warning in red that this is job is controlled by the template.  
 
 How it works
 ============
