@@ -48,6 +48,13 @@
       <artifactId>matrix-auth</artifactId>
       <version>1.2</version>
     </dependency>
+
+    <dependency>
+      <groupId>com.synopsys.jenkinsci</groupId>
+      <artifactId>ownership</artifactId>
+      <version>0.6</version>
+      <optional>true</optional>
+    </dependency>
   </dependencies>
 
   <build>
