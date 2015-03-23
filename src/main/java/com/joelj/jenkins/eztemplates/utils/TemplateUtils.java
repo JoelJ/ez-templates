@@ -11,6 +11,7 @@ import hudson.triggers.TriggerDescriptor;
 import hudson.util.CopyOnWriteList;
 import hudson.security.*;
 import hudson.scm.SCM;
+import com.synopsys.arc.jenkins.plugins.ownership.jobs.*;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -98,6 +99,7 @@ public class TemplateUtils {
         boolean shouldBeDisabled = implementationProject.isDisabled();
         String description = implementationProject.getDescription();
         AuthorizationMatrixProperty oldAuthMatrixProperty = (AuthorizationMatrixProperty) implementationProject.getProperty(AuthorizationMatrixProperty.class);
+        JobOwnerJobProperty oldJobOwnerJobProperty = (JobOwnerJobProperty) implementationProject.getProperty(JobOwnerJobProperty.class);
         SCM oldScm = (SCM) implementationProject.getScm();
 
         AxisList oldAxisList = null;
@@ -134,6 +136,12 @@ public class TemplateUtils {
             implementationProject.removeProperty(AuthorizationMatrixProperty.class);
             implementationProject.addProperty(oldAuthMatrixProperty);
         }
+
+        if (!property.getSyncSecurity() && oldJobOwnerJobProperty != null) {
+            implementationProject.removeProperty(JobOwnerJobProperty.class);
+            implementationProject.addProperty(oldJobOwnerJobProperty);
+        }
+
 
         if (!property.getSyncScm() && oldScm != null) {
             implementationProject.setScm(oldScm);
