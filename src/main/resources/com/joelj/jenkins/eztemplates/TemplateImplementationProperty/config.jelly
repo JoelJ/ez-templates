@@ -31,10 +31,10 @@
 				<f:checkbox />
 			</f:entry>
 			<f:entry field="syncScm" title="${%Sync Source Control Mgmt}">
-				<f:checkbox default="true" />
+				<f:checkbox />
 			</f:entry>
 			<f:entry field="syncOwnership" title="${%Sync Ownership}">
-				<f:checkbox default="false" />
+				<f:checkbox />
 			</f:entry>
                 </f:advanced>
 	</f:optionalBlock>

@@ -68,7 +68,7 @@ public class TemplateUtils {
                 false,
                 false,
                 false,
-                true,
+                false,
                 false
         );
         copy.addProperty(implProperty);
