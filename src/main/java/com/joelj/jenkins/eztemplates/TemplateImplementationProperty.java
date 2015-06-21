@@ -26,9 +26,10 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
     private final boolean syncDisabled;
     private final boolean syncSecurity;
     private final boolean syncScm;
+    private final boolean syncOwnership;
 
     @DataBoundConstructor
-    public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis, boolean syncDescription, boolean syncBuildTriggers, boolean syncDisabled, boolean syncSecurity, boolean syncScm) {
+    public TemplateImplementationProperty(String templateJobName, boolean syncMatrixAxis, boolean syncDescription, boolean syncBuildTriggers, boolean syncDisabled, boolean syncSecurity, boolean syncScm, boolean syncOwnership) {
         this.templateJobName = templateJobName;
         this.syncMatrixAxis = syncMatrixAxis;
         this.syncDescription = syncDescription;
@@ -36,6 +37,7 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
         this.syncDisabled = syncDisabled;
         this.syncSecurity = syncSecurity;
         this.syncScm = syncScm;
+        this.syncOwnership = syncOwnership;
     }
 
     @Exported
@@ -72,6 +74,10 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
         return syncScm;
     }
 
+    public boolean getSyncOwnership() {
+        return syncOwnership;
+    }
+
     public AbstractProject findTemplate() {
         return ProjectUtils.findProject(getTemplateJobName());
     }
@@ -90,8 +96,9 @@ public class TemplateImplementationProperty extends JobProperty<AbstractProject<
                 boolean syncDisabled = useTemplate.getBoolean("syncDisabled");
                 boolean syncSecurity = useTemplate.getBoolean("syncSecurity");
                 boolean syncScm = useTemplate.getBoolean("syncScm");
+                boolean syncOwnership = useTemplate.getBoolean("syncOwnership");
 
-                return new TemplateImplementationProperty(templateJobName, syncMatrixAxis, syncDescription, syncBuildTriggers, syncDisabled, syncSecurity, syncScm);
+                return new TemplateImplementationProperty(templateJobName, syncMatrixAxis, syncDescription, syncBuildTriggers, syncDisabled, syncSecurity, syncScm, syncOwnership);
             }
 
             return null;
