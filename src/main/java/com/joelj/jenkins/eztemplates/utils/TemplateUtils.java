@@ -33,6 +33,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
 import com.joelj.jenkins.eztemplates.TemplateProperty;
+import com.joelj.jenkins.eztemplates.promotedbuilds.PromotedBuildsTemplateUtils;
 
 public class TemplateUtils {
     private static final Logger LOG = Logger.getLogger("ez-templates");
@@ -113,6 +114,7 @@ public class TemplateUtils {
         AuthorizationMatrixProperty oldAuthMatrixProperty = (AuthorizationMatrixProperty) implementationProject.getProperty(AuthorizationMatrixProperty.class);
         SCM oldScm = (SCM) implementationProject.getScm();
         JobProperty oldOwnership = implementationProject.getProperty("com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty");
+        JobProperty promotedBuildsInstalled = implementationProject.getProperty("hudson.plugins.promoted_builds.JobPropertyImpl");
 
         AxisList oldAxisList = null;
         if (implementationProject instanceof MatrixProject && !property.getSyncMatrixAxis()) {
@@ -156,6 +158,10 @@ public class TemplateUtils {
         if (!property.getSyncOwnership() && oldOwnership != null) {
             implementationProject.removeProperty(oldOwnership.getClass());
             implementationProject.addProperty(oldOwnership);
+        }
+
+        if( promotedBuildsInstalled != null ) {
+            PromotedBuildsTemplateUtils.addPromotions( implementationProject, templateProject );
         }
 
         ProjectUtils.silentSave(implementationProject);

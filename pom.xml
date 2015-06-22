@@ -53,6 +53,7 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>promoted-builds</artifactId>
       <version>2.21</version>
+      <optional>true</optional>
     </dependency>
   </dependencies>
 
