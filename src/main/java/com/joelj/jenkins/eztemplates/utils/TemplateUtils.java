@@ -1,21 +1,25 @@
 package com.joelj.jenkins.eztemplates.utils;
 
-import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
-import com.joelj.jenkins.eztemplates.TemplateProperty;
+import hudson.Util;
 import hudson.matrix.AxisList;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
-import hudson.model.*;
+import hudson.model.JobProperty;
+import hudson.model.AbstractItem;
+import hudson.model.AbstractProject;
+import hudson.model.Job;
+import hudson.model.ParameterDefinition;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.plugins.promoted_builds.JobPropertyImpl;
+import hudson.scm.SCM;
+import hudson.security.AuthorizationMatrixProperty;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.CopyOnWriteList;
-import hudson.security.*;
-import hudson.scm.SCM;
 
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Iterator;
@@ -24,32 +28,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+
+import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
+import com.joelj.jenkins.eztemplates.TemplateProperty;
+import com.joelj.jenkins.eztemplates.promotedbuilds.PromotedBuildsTemplateUtils;
+
 public class TemplateUtils {
     private static final Logger LOG = Logger.getLogger("ez-templates");
 
-    public static void handleTemplateSaved(AbstractProject templateProject, TemplateProperty property) throws IOException {
+    public static void handleTemplateSaved(final AbstractProject templateProject, final TemplateProperty property) throws IOException {
         LOG.info(String.format("Template [%s] was saved. Syncing implementations.", templateProject.getFullDisplayName()));
-        for (AbstractProject impl : property.getImplementations()) {
-            TemplateImplementationProperty implProperty = (TemplateImplementationProperty) impl.getProperty(TemplateImplementationProperty.class);
+        for (final AbstractProject impl : property.getImplementations()) {
+            final TemplateImplementationProperty implProperty = (TemplateImplementationProperty) impl.getProperty(TemplateImplementationProperty.class);
             handleTemplateImplementationSaved(impl, implProperty);
         }
     }
 
-    public static void handleTemplateDeleted(AbstractProject templateProject, TemplateProperty property) throws IOException {
+    public static void handleTemplateDeleted(final AbstractProject templateProject, final TemplateProperty property) throws IOException {
         LOG.info(String.format("Template [%s] was deleted.", templateProject.getFullDisplayName()));
-        for (AbstractProject impl : property.getImplementations()) {
+        for (final AbstractProject impl : property.getImplementations()) {
             LOG.info(String.format("Removing template from [%s].", impl.getFullDisplayName()));
-            TemplateImplementationProperty implProperty = (TemplateImplementationProperty) impl.getProperty(TemplateImplementationProperty.class);
+            final TemplateImplementationProperty implProperty = (TemplateImplementationProperty) impl.getProperty(TemplateImplementationProperty.class);
             impl.removeProperty(TemplateImplementationProperty.class);
             ProjectUtils.silentSave(impl);
         }
     }
 
-    public static void handleTemplateRename(AbstractProject templateProject, TemplateProperty property, String oldFullName, String newFullName) throws IOException {
+    public static void handleTemplateRename(final AbstractProject templateProject, final TemplateProperty property, final String oldFullName, final String newFullName) throws IOException {
         LOG.info(String.format("Template [%s] was renamed. Updating implementations.", templateProject.getFullDisplayName()));
-        for (AbstractProject impl : TemplateProperty.getImplementations(oldFullName)) {
+        for (final AbstractProject impl : TemplateProperty.getImplementations(oldFullName)) {
             LOG.info(String.format("Updating template in [%s].", impl.getFullDisplayName()));
-            TemplateImplementationProperty implProperty = (TemplateImplementationProperty) impl.getProperty(TemplateImplementationProperty.class);
+            final TemplateImplementationProperty implProperty = (TemplateImplementationProperty) impl.getProperty(TemplateImplementationProperty.class);
             if (oldFullName.equals(implProperty.getTemplateJobName())) {
                 implProperty.setTemplateJobName(newFullName);
                 ProjectUtils.silentSave(impl);
@@ -57,11 +68,11 @@ public class TemplateUtils {
         }
     }
 
-    public static void handleTemplateCopied(AbstractProject copy, AbstractProject original) throws IOException {
+    public static void handleTemplateCopied(final AbstractProject copy, final AbstractProject original) throws IOException {
         LOG.info(String.format("Template [%s] was copied to [%s]. Forcing new project to be an implementation of the original.",original.getFullDisplayName(), copy.getFullDisplayName()));
         copy.removeProperty(TemplateProperty.class);
         copy.removeProperty(TemplateImplementationProperty.class);
-        TemplateImplementationProperty implProperty = new TemplateImplementationProperty(
+        final TemplateImplementationProperty implProperty = new TemplateImplementationProperty(
                 original.getFullName(),
                 false,
                 false,
@@ -74,37 +85,40 @@ public class TemplateUtils {
         copy.addProperty(implProperty);
     }
 
-    public static void handleTemplateImplementationSaved(AbstractProject implementationProject, TemplateImplementationProperty property) throws IOException {
-    	
+    public static void handleTemplateImplementationSaved(AbstractProject implementationProject, final TemplateImplementationProperty property) throws IOException {
+
         if (property.getTemplateJobName().equals("null")) {
             LOG.warning(String.format("Implementation [%s] was saved. No template selected.", implementationProject.getFullDisplayName()));
             return;
         }
-    	
+
         LOG.info(String.format("Implementation [%s] was saved. Syncing with [%s].", implementationProject.getFullDisplayName(), property.getTemplateJobName()));
-        
-        AbstractProject templateProject = property.findTemplate();        
+
+        final AbstractProject templateProject = property.findTemplate();
         if (templateProject == null) {
-        	
-        	// If the template can't be found, then it's probably a bug
+
+            // If the template can't be found, then it's probably a bug
             throw new IllegalStateException(String.format("Cannot find template [%s] used by job [%s]", property.getTemplateJobName(), implementationProject.getFullDisplayName()));
         }
 
         //Capture values we want to keep
         @SuppressWarnings("unchecked")
+        final
         boolean implementationIsTemplate = implementationProject.getProperty(TemplateProperty.class) != null;
-        List<ParameterDefinition> oldImplementationParameters = findParameters(implementationProject);
+        final List<ParameterDefinition> oldImplementationParameters = findParameters(implementationProject);
         @SuppressWarnings("unchecked")
+        final
         Map<TriggerDescriptor, Trigger> oldTriggers = implementationProject.getTriggers();
         boolean shouldBeDisabled = implementationProject.isDisabled();
         String description = implementationProject.getDescription();
         AuthorizationMatrixProperty oldAuthMatrixProperty = (AuthorizationMatrixProperty) implementationProject.getProperty(AuthorizationMatrixProperty.class);
         SCM oldScm = (SCM) implementationProject.getScm();
         JobProperty oldOwnership = implementationProject.getProperty("com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty");
+        JobProperty promotedBuildsInstalled = implementationProject.getProperty("hudson.plugins.promoted_builds.JobPropertyImpl");
 
         AxisList oldAxisList = null;
         if (implementationProject instanceof MatrixProject && !property.getSyncMatrixAxis()) {
-            MatrixProject matrixProject = (MatrixProject) implementationProject;
+            final MatrixProject matrixProject = (MatrixProject) implementationProject;
             oldAxisList = matrixProject.getAxes();
         }
 
@@ -146,6 +160,10 @@ public class TemplateUtils {
             implementationProject.addProperty(oldOwnership);
         }
 
+        if( promotedBuildsInstalled != null ) {
+            PromotedBuildsTemplateUtils.addPromotions( implementationProject, templateProject );
+        }
+
         ProjectUtils.silentSave(implementationProject);
     }
 
@@ -155,7 +173,7 @@ public class TemplateUtils {
      * @param matrixProject The project to set the Axis on.
      * @param axisList      The Axis list to set.
      */
-    private static void fixAxisList(MatrixProject matrixProject, AxisList axisList) {
+    private static void fixAxisList(final MatrixProject matrixProject, final AxisList axisList) {
         if (axisList == null) {
             return; //The "axes" field can never be null. So just to be extra careful.
         }
@@ -165,8 +183,8 @@ public class TemplateUtils {
         ReflectionUtils.invokeMethod(MatrixProject.class, matrixProject, "rebuildConfigurations", ReflectionUtils.MethodParameter.get(MatrixBuild.MatrixBuildExecution.class, null));
     }
 
-    private static void fixBuildTriggers(AbstractProject implementationProject, Map<TriggerDescriptor, Trigger> oldTriggers) {
-        List<Trigger<?>> triggersToReplace = ProjectUtils.getTriggers(implementationProject);
+    private static void fixBuildTriggers(final AbstractProject implementationProject, final Map<TriggerDescriptor, Trigger> oldTriggers) {
+        final List<Trigger<?>> triggersToReplace = ProjectUtils.getTriggers(implementationProject);
         if (triggersToReplace == null) {
             throw new NullPointerException("triggersToReplace");
         }
@@ -175,18 +193,19 @@ public class TemplateUtils {
             //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (triggersToReplace) {
                 triggersToReplace.clear();
-                for (Trigger trigger : oldTriggers.values()) {
+                for (final Trigger trigger : oldTriggers.values()) {
                     triggersToReplace.add(trigger);
                 }
             }
         }
     }
 
-    private static void fixParameters(AbstractProject implementationProject, List<ParameterDefinition> oldImplementationParameters) throws IOException {
-        List<ParameterDefinition> newImplementationParameters = findParameters(implementationProject);
+    private static void fixParameters(final AbstractProject implementationProject, final List<ParameterDefinition> oldImplementationParameters) throws IOException {
+        final List<ParameterDefinition> newImplementationParameters = findParameters(implementationProject);
 
-        ParametersDefinitionProperty newParameterAction = findParametersToKeep(oldImplementationParameters, newImplementationParameters);
-        @SuppressWarnings("unchecked") ParametersDefinitionProperty toRemove = (ParametersDefinitionProperty) implementationProject.getProperty(ParametersDefinitionProperty.class);
+        final ParametersDefinitionProperty newParameterAction = findParametersToKeep(oldImplementationParameters, newImplementationParameters);
+        @SuppressWarnings("unchecked")
+        final ParametersDefinitionProperty toRemove = (ParametersDefinitionProperty) implementationProject.getProperty(ParametersDefinitionProperty.class);
         if (toRemove != null) {
             //noinspection unchecked
             implementationProject.removeProperty(toRemove);
@@ -197,13 +216,13 @@ public class TemplateUtils {
         }
     }
 
-    private static ParametersDefinitionProperty findParametersToKeep(List<ParameterDefinition> oldImplementationParameters, List<ParameterDefinition> newImplementationParameters) {
-        List<ParameterDefinition> result = new LinkedList<ParameterDefinition>();
-        for (ParameterDefinition newImplementationParameter : newImplementationParameters) { //'new' parameters are the same as the template.
+    private static ParametersDefinitionProperty findParametersToKeep(final List<ParameterDefinition> oldImplementationParameters, final List<ParameterDefinition> newImplementationParameters) {
+        final List<ParameterDefinition> result = new LinkedList<ParameterDefinition>();
+        for (final ParameterDefinition newImplementationParameter : newImplementationParameters) { //'new' parameters are the same as the template.
             boolean found = false;
-            Iterator<ParameterDefinition> iterator = oldImplementationParameters.iterator();
+            final Iterator<ParameterDefinition> iterator = oldImplementationParameters.iterator();
             while (iterator.hasNext()) {
-                ParameterDefinition oldImplementationParameter = iterator.next();
+                final ParameterDefinition oldImplementationParameter = iterator.next();
                 if (newImplementationParameter.getName().equals(oldImplementationParameter.getName())) {
                     found = true;
                     iterator.remove(); //Make the next iteration a little faster.
@@ -220,7 +239,7 @@ public class TemplateUtils {
         }
 
         if (oldImplementationParameters != null) {
-            for (ParameterDefinition unused : oldImplementationParameters) {
+            for (final ParameterDefinition unused : oldImplementationParameters) {
                 LOG.info(String.format("\t--- old parameter [%s]", unused.getName()));
             }
         }
@@ -228,11 +247,11 @@ public class TemplateUtils {
         return result.isEmpty() ? null : new ParametersDefinitionProperty(result);
     }
 
-    private static AbstractProject synchronizeConfigFiles(AbstractProject implementationProject, AbstractProject templateProject) throws IOException {
-        File templateConfigFile = templateProject.getConfigFile().getFile();
-        BufferedReader reader = new BufferedReader(new FileReader(templateConfigFile));
+    private static AbstractProject synchronizeConfigFiles(AbstractProject implementationProject, final AbstractProject templateProject) throws IOException {
+        final File templateConfigFile = templateProject.getConfigFile().getFile();
+        final BufferedReader reader = new BufferedReader(new FileReader(templateConfigFile));
         try {
-            Source source = new StreamSource(reader);
+            final Source source = new StreamSource(reader);
             implementationProject = ProjectUtils.updateProjectWithXmlSource(implementationProject, source);
         } finally {
             reader.close();
@@ -240,24 +259,25 @@ public class TemplateUtils {
         return implementationProject;
     }
 
-    private static List<ParameterDefinition> findParameters(AbstractProject implementationProject) {
-        List<ParameterDefinition> definitions = new LinkedList<ParameterDefinition>();
+    private static List<ParameterDefinition> findParameters(final AbstractProject implementationProject) {
+        final List<ParameterDefinition> definitions = new LinkedList<ParameterDefinition>();
         @SuppressWarnings("unchecked")
+        final
         ParametersDefinitionProperty parametersDefinitionProperty = (ParametersDefinitionProperty) implementationProject.getProperty(ParametersDefinitionProperty.class);
         if (parametersDefinitionProperty != null) {
-            for (String parameterName : parametersDefinitionProperty.getParameterDefinitionNames()) {
+            for (final String parameterName : parametersDefinitionProperty.getParameterDefinitionNames()) {
                 definitions.add(parametersDefinitionProperty.getParameterDefinition(parameterName));
             }
         }
         return definitions;
     }
 
-    private static void fixProperties(AbstractProject implementationProject, TemplateImplementationProperty property, boolean implementationIsTemplate) throws IOException {
-        CopyOnWriteList<JobProperty<?>> properties = ReflectionUtils.getFieldValue(Job.class, implementationProject, "properties");
+    private static void fixProperties(final AbstractProject implementationProject, final TemplateImplementationProperty property, final boolean implementationIsTemplate) throws IOException {
+        final CopyOnWriteList<JobProperty<?>> properties = ReflectionUtils.getFieldValue(Job.class, implementationProject, "properties");
         properties.add(property);
 
         if (!implementationIsTemplate) {
-            for (JobProperty<?> jobProperty : properties) {
+            for (final JobProperty<?> jobProperty : properties) {
                 if (jobProperty instanceof TemplateProperty) {
                     properties.remove(jobProperty);
                 }
