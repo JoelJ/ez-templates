@@ -78,7 +78,8 @@ public class TemplateUtils {
                 false,
                 false,
                 false,
-                true
+                false,
+                false
         );
         copy.addProperty(implProperty);
     }
@@ -107,10 +108,11 @@ public class TemplateUtils {
         @SuppressWarnings("unchecked")
         final
         Map<TriggerDescriptor, Trigger> oldTriggers = implementationProject.getTriggers();
-        final boolean shouldBeDisabled = implementationProject.isDisabled();
-        final String description = implementationProject.getDescription();
-        final AuthorizationMatrixProperty oldAuthMatrixProperty = (AuthorizationMatrixProperty) implementationProject.getProperty(AuthorizationMatrixProperty.class);
-        final SCM oldScm = implementationProject.getScm();
+        boolean shouldBeDisabled = implementationProject.isDisabled();
+        String description = implementationProject.getDescription();
+        AuthorizationMatrixProperty oldAuthMatrixProperty = (AuthorizationMatrixProperty) implementationProject.getProperty(AuthorizationMatrixProperty.class);
+        SCM oldScm = (SCM) implementationProject.getScm();
+        JobProperty oldOwnership = implementationProject.getProperty("com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty");
 
         AxisList oldAxisList = null;
         if (implementationProject instanceof MatrixProject && !property.getSyncMatrixAxis()) {
@@ -151,25 +153,9 @@ public class TemplateUtils {
             implementationProject.setScm(oldScm);
         }
 
-        final JobPropertyImpl promotion = ( JobPropertyImpl )implementationProject.getProperty( JobPropertyImpl.class );
-        if( promotion != null ) {
-            LOG.info( String.format("Merging [%s].", promotion.getFullDisplayName() ) );
-            implementationProject.removeProperty( JobPropertyImpl.class );
-            Util.deleteRecursive( new File( implementationProject.getRootDir(), "promotions" ) );
-            promotion.getItems().clear();
-
-            final File templatePromotions = new File( templateProject.getRootDir(),"promotions" );
-            final String[] list = templatePromotions.list();
-            if( list != null ) {
-                for( final String promotionDir : list ) {
-                    final File templatePromotionProcess = new File( templatePromotions, promotionDir );
-                    if( templatePromotionProcess.isDirectory() ) {
-                        promotion.createProcessFromXml( promotionDir, new FileInputStream( new File( templatePromotionProcess, "config.xml" ) ) );
-                    }
-                }
-            }
-
-            implementationProject.addProperty( promotion );
+        if (!property.getSyncOwnership() && oldOwnership != null) {
+            implementationProject.removeProperty(oldOwnership.getClass());
+            implementationProject.addProperty(oldOwnership);
         }
 
         ProjectUtils.silentSave(implementationProject);
