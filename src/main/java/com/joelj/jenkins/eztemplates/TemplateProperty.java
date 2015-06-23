@@ -8,6 +8,7 @@ import hudson.model.AbstractProject;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
 import net.sf.json.JSONObject;
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.util.Collection;
@@ -17,13 +18,16 @@ public class TemplateProperty extends JobProperty<AbstractProject<?, ?>> {
     public static Collection<AbstractProject> getImplementations(final String templateFullName) {
         Collection<AbstractProject> projects = ProjectUtils.findProjectsWithProperty(TemplateImplementationProperty.class);
         return Collections2.filter(projects, new Predicate<AbstractProject>() {
-            @Override
             public boolean apply(AbstractProject abstractProject) {
                 TemplateImplementationProperty prop = (TemplateImplementationProperty) abstractProject.getProperty(TemplateImplementationProperty.class);
                 return templateFullName.equals(prop.getTemplateJobName());
             }
         });
 
+    }
+
+    @DataBoundConstructor
+    public TemplateProperty() {
     }
 
     public Collection<AbstractProject> getImplementations() {

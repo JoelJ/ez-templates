@@ -2,6 +2,7 @@ package com.joelj.jenkins.eztemplates.utils;
 
 import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
 import com.joelj.jenkins.eztemplates.TemplateProperty;
+import com.joelj.jenkins.eztemplates.promotedbuilds.PromotedBuildsTemplateUtils;
 import hudson.matrix.AxisList;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
@@ -11,6 +12,7 @@ import hudson.triggers.TriggerDescriptor;
 import hudson.util.CopyOnWriteList;
 import hudson.security.*;
 import hudson.scm.SCM;
+import jenkins.model.Jenkins;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -145,6 +147,10 @@ public class TemplateUtils {
             implementationProject.removeProperty(oldOwnership.getClass());
             implementationProject.addProperty(oldOwnership);
         }
+
+        if (Jenkins.getInstance().getPlugin("promoted-builds") != null) {
+            PromotedBuildsTemplateUtils.addPromotions(implementationProject, templateProject);
+        } 
 
         ProjectUtils.silentSave(implementationProject);
     }
