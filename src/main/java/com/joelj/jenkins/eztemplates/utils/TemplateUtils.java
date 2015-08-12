@@ -71,7 +71,8 @@ public class TemplateUtils {
                 false,
                 false,
                 false,
-                false
+                false,
+                true
         );
         copy.addProperty(implProperty);
     }
@@ -103,6 +104,7 @@ public class TemplateUtils {
         AuthorizationMatrixProperty oldAuthMatrixProperty = (AuthorizationMatrixProperty) implementationProject.getProperty(AuthorizationMatrixProperty.class);
         SCM oldScm = (SCM) implementationProject.getScm();
         JobProperty oldOwnership = implementationProject.getProperty("com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty");
+        Label oldLabel = implementationProject.getAssignedLabel();
 
         AxisList oldAxisList = null;
         if (implementationProject instanceof MatrixProject && !property.getSyncMatrixAxis()) {
@@ -146,6 +148,10 @@ public class TemplateUtils {
         if (!property.getSyncOwnership() && oldOwnership != null) {
             implementationProject.removeProperty(oldOwnership.getClass());
             implementationProject.addProperty(oldOwnership);
+        }
+
+        if (!property.getSyncAssignedLabel()) {
+            implementationProject.setAssignedLabel(oldLabel);
         }
 
         if (Jenkins.getInstance().getPlugin("promoted-builds") != null) {
