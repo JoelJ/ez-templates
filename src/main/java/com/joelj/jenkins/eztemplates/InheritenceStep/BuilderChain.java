@@ -37,9 +37,8 @@ import java.util.List;
 
 /**
  * A builder not directly configurable via UI, instances are only created for transitive usage to wrap the execution of multiple builders.
- * 
+ *
  * @author Dominik Bartholdi (imod)
- * 
  */
 public class BuilderChain extends Builder {
 

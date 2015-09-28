@@ -24,6 +24,9 @@
 
 package com.joelj.jenkins.eztemplates.InheritenceStep.singlestep;
 
+import com.joelj.jenkins.eztemplates.InheritenceStep.lister.BuilderDescriptorLister;
+import com.joelj.jenkins.eztemplates.InheritenceStep.lister.DefaultBuilderDescriptorLister;
+import com.joelj.jenkins.eztemplates.Messages;
 import hudson.DescriptorExtensionList;
 import hudson.Extension;
 import hudson.Launcher;
@@ -36,9 +39,6 @@ import net.sf.json.JSONObject;
 import org.jenkins_ci.plugins.run_condition.BuildStepRunner;
 import org.jenkins_ci.plugins.run_condition.RunCondition;
 import org.jenkins_ci.plugins.run_condition.core.AlwaysRun;
-import com.joelj.jenkins.eztemplates.Messages;
-import com.joelj.jenkins.eztemplates.InheritenceStep.lister.BuilderDescriptorLister;
-import com.joelj.jenkins.eztemplates.InheritenceStep.lister.DefaultBuilderDescriptorLister;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
@@ -49,7 +49,6 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 
  * @author Anthony Robinson
  * @author Dominik Bartholdi (imod)
  */
@@ -98,21 +97,17 @@ public class SingleConditionalBuilder extends Builder implements DependecyDeclar
     public boolean perform(final AbstractBuild<?, ?> build, final Launcher launcher, final BuildListener listener) throws InterruptedException, IOException {
         return runner.perform(condition, buildStep, build, launcher, listener);
     }
-    
+
     public void buildDependencyGraph(AbstractProject project, DependencyGraph graph) {
-        if(buildStep != null) {
-            if(buildStep instanceof DependecyDeclarer) {
-                ((DependecyDeclarer)buildStep).buildDependencyGraph(project, graph);
+        if (buildStep != null) {
+            if (buildStep instanceof DependecyDeclarer) {
+                ((DependecyDeclarer) buildStep).buildDependencyGraph(project, graph);
             }
         }
     }
 
     @Extension(ordinal = Integer.MAX_VALUE - 500)
     public static class SingleConditionalBuilderDescriptor extends BuildStepDescriptor<Builder> {
-
-        public static DescriptorExtensionList<BuilderDescriptorLister, Descriptor<BuilderDescriptorLister>> getAllBuilderDescriptorListers() {
-            return Hudson.getInstance().<BuilderDescriptorLister, Descriptor<BuilderDescriptorLister>> getDescriptorList(BuilderDescriptorLister.class);
-        }
 
         private BuilderDescriptorLister builderLister;
 
@@ -125,6 +120,10 @@ public class SingleConditionalBuilder extends Builder implements DependecyDeclar
             load();
             if (builderLister == null)
                 builderLister = new DefaultBuilderDescriptorLister();
+        }
+
+        public static DescriptorExtensionList<BuilderDescriptorLister, Descriptor<BuilderDescriptorLister>> getAllBuilderDescriptorListers() {
+            return Hudson.getInstance().<BuilderDescriptorLister, Descriptor<BuilderDescriptorLister>>getDescriptorList(BuilderDescriptorLister.class);
         }
 
         public BuilderDescriptorLister getBuilderLister() {

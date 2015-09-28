@@ -23,6 +23,9 @@
  */
 package com.joelj.jenkins.eztemplates.InheritenceStep;
 
+import com.joelj.jenkins.eztemplates.InheritenceStep.singlestep.SingleConditionalBuilder;
+import com.joelj.jenkins.eztemplates.InheritenceStep.singlestep.SingleConditionalBuilder.SingleConditionalBuilderDescriptor;
+import com.joelj.jenkins.eztemplates.Messages;
 import hudson.DescriptorExtensionList;
 import hudson.Extension;
 import hudson.Launcher;
@@ -33,11 +36,8 @@ import hudson.tasks.Builder;
 import net.sf.json.JSONObject;
 import org.jenkins_ci.plugins.run_condition.BuildStepRunner;
 import org.jenkins_ci.plugins.run_condition.RunCondition;
-import com.joelj.jenkins.eztemplates.InheritenceStep.singlestep.SingleConditionalBuilder;
-import com.joelj.jenkins.eztemplates.InheritenceStep.singlestep.SingleConditionalBuilder.SingleConditionalBuilderDescriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
-import com.joelj.jenkins.eztemplates.Messages;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,24 +53,9 @@ import java.util.logging.Logger;
  */
 public class ConditionalBuilder extends Builder implements DependecyDeclarer {
     private static Logger log = Logger.getLogger(ConditionalBuilder.class.getName());
-
-    // retaining backward compatibility
-    private transient String condition;
-    private transient boolean invertCondition;
-
     private final BuildStepRunner runner;
     private RunCondition runCondition;
     private List<BuildStep> conditionalbuilders;
-
-    /**
-     * @deprecated  No longer needed as part of the Constructor
-     *  Use {@link #ConditionalBuilder(RunCondition, BuildStepRunner, List< Builder >)}
-    */
-    @Deprecated
-    public ConditionalBuilder(RunCondition runCondition, final BuildStepRunner runner) {
-        //List<Builder> builders = new ArrayList<Builder>();
-        this(runCondition, runner, new ArrayList<BuildStep>());
-    }
 
     @DataBoundConstructor
     public ConditionalBuilder(RunCondition runCondition, final BuildStepRunner runner, List<BuildStep> conditionalbuilders) {
@@ -78,20 +63,17 @@ public class ConditionalBuilder extends Builder implements DependecyDeclarer {
         this.runCondition = runCondition;
         this.conditionalbuilders = conditionalbuilders;
     }
+
     public BuildStepRunner getRunner() {
         return runner;
     }
 
-    public RunCondition getRunCondition() {
-        return runCondition;
-    }
-    
     @Override
     public Collection getProjectActions(AbstractProject<?, ?> project) {
         final Collection projectActions = new ArrayList();
         for (BuildStep buildStep : getConditionalbuilders()) {
             Collection<? extends Action> pas = buildStep.getProjectActions(project);
-            if(pas != null) {
+            if (pas != null) {
                 projectActions.addAll(pas);
             }
         }
@@ -99,20 +81,10 @@ public class ConditionalBuilder extends Builder implements DependecyDeclarer {
     }
 
     public List<BuildStep> getConditionalbuilders() {
-        if(conditionalbuilders == null){
+        if (conditionalbuilders == null) {
             conditionalbuilders = new ArrayList<BuildStep>();
         }
         return conditionalbuilders;
-    }
-
-    /**
-     * Set the Conditional Builders
-     *
-     * @deprecated  No longer needed as part of the DataBoundConstructor
-     */
-    @Deprecated
-    public void setConditionalbuilders(List<BuildStep> conditionalbuilders) {
-        this.conditionalbuilders = conditionalbuilders;
     }
 
     @Override
@@ -125,17 +97,17 @@ public class ConditionalBuilder extends Builder implements DependecyDeclarer {
         return runner.perform(runCondition, new BuilderChain(getConditionalbuilders()), build, launcher, listener);
     }
 
-    public Object readResolve() {
-        if (condition != null) {
-            // retaining backward compatibility
-            this.runCondition = new LegacyBuildstepCondition(condition, invertCondition);
-        }
-        return this;
-    }
-
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
+    }
+
+    public void buildDependencyGraph(AbstractProject project, DependencyGraph graph) {
+        for (BuildStep builder : getConditionalbuilders()) {
+            if (builder instanceof DependecyDeclarer) {
+                ((DependecyDeclarer) builder).buildDependencyGraph(project, graph);
+            }
+        }
     }
 
     @Extension
@@ -174,14 +146,6 @@ public class ConditionalBuilder extends Builder implements DependecyDeclarer {
             return RunCondition.all();
         }
 
-    }
-
-    public void buildDependencyGraph(AbstractProject project, DependencyGraph graph) {
-        for (BuildStep builder : getConditionalbuilders()) {
-            if(builder instanceof DependecyDeclarer) {
-                ((DependecyDeclarer)builder).buildDependencyGraph(project, graph);
-            }
-        }
     }
 
 }

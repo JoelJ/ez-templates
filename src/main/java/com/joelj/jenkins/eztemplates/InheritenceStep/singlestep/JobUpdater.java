@@ -24,6 +24,7 @@
 
 package com.joelj.jenkins.eztemplates.InheritenceStep.singlestep;
 
+import com.joelj.jenkins.eztemplates.InheritenceStep.lister.DefaultBuilderDescriptorLister;
 import hudson.model.Descriptor;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.BuildStep;
@@ -31,7 +32,6 @@ import hudson.tasks.Builder;
 import hudson.util.DescribableList;
 import org.jenkins_ci.plugins.run_condition.BuildStepRunner;
 import org.jenkins_ci.plugins.run_condition.core.AlwaysRun;
-import com.joelj.jenkins.eztemplates.InheritenceStep.lister.DefaultBuilderDescriptorLister;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,16 +44,16 @@ public class JobUpdater {
 
     /**
      * Wrap all of the allowed BuildSteps on a freestyle project with a single conditional builder
-     * 
+     * <p>
      * For freestyle project called 'xxx':
-     * 
+     * <p>
      * <code>
      * import static org.jenkinsci.plugins.conditionalbuildstep.singlestep.JobUpdater.*
-     * 
+     * <p>
      * def job = hudson.model.Hudson.instance.getItem('xxx')
      * updateBuilders job
      * </code>
-     * 
+     * <p>
      * Once executed, go to the configure page to check that everything looks OK, then save the configuration
      */
     public static boolean updateBuilders(final FreeStyleProject project) throws IOException {

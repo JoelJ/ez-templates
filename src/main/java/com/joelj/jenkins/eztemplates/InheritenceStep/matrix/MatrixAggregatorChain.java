@@ -34,9 +34,8 @@ import java.util.List;
 
 /**
  * An aggregator chaining all the aggregators of the chained builders - only done/used within a matrix build.
- * 
+ *
  * @author Dominik Bartholdi (imod)
- * 
  */
 public class MatrixAggregatorChain extends MatrixAggregator {
 

@@ -24,6 +24,10 @@
 
 package com.joelj.jenkins.eztemplates.InheritenceStep.lister;
 
+import com.joelj.jenkins.eztemplates.InheritenceStep.BuilderChain;
+import com.joelj.jenkins.eztemplates.InheritenceStep.ConditionalBuilder;
+import com.joelj.jenkins.eztemplates.InheritenceStep.singlestep.SingleConditionalBuilder;
+import com.joelj.jenkins.eztemplates.Messages;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
@@ -31,10 +35,6 @@ import hudson.model.Hudson;
 import hudson.tasks.BuildStep;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
-import com.joelj.jenkins.eztemplates.InheritenceStep.BuilderChain;
-import com.joelj.jenkins.eztemplates.InheritenceStep.ConditionalBuilder;
-import com.joelj.jenkins.eztemplates.Messages;
-import com.joelj.jenkins.eztemplates.InheritenceStep.singlestep.SingleConditionalBuilder;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.lang.reflect.Constructor;
@@ -65,7 +65,7 @@ public class DefaultBuilderDescriptorLister implements BuilderDescriptorLister {
                 continue;
             }
             BuildStepDescriptor<? extends Builder> buildStepDescriptor = (BuildStepDescriptor) descriptor;
-            if (buildStepDescriptor.isApplicable(project.getClass()) && hasDbc(buildStepDescriptor.clazz)){
+            if (buildStepDescriptor.isApplicable(project.getClass()) && hasDbc(buildStepDescriptor.clazz)) {
                 builders.add(buildStepDescriptor);
             }
         }
