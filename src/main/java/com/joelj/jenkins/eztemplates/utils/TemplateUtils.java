@@ -115,7 +115,7 @@ public class TemplateUtils {
             oldAxisList = matrixProject.getAxes();
         }
 
-        DescribableList<Builder, Descriptor<Builder>> oldBuilders = ((FreeStyleProject)implementationProject).getBuildersList();
+        DescribableList<Builder, Descriptor<Builder>> oldBuilders = ((Project)implementationProject).getBuildersList();
 
 
         implementationProject = synchronizeConfigFiles(implementationProject, templateProject);
@@ -169,7 +169,7 @@ public class TemplateUtils {
         List<Builder> inheritanceOldBuilders = getChildJobBuilders(oldbuilders);
         if(inheritanceOldBuilders == null || inheritanceOldBuilders.size() == 0)
             return;
-        final DescribableList<Builder, Descriptor<Builder>>  newBuilders = ((FreeStyleProject)implementationProject).getBuildersList();
+        final DescribableList<Builder, Descriptor<Builder>>  newBuilders = ((Project)implementationProject).getBuildersList();
         List<Builder> inheritanceNewBuilders = getBuildersForSync(newBuilders, inheritanceOldBuilders);
         newBuilders.replaceBy(inheritanceNewBuilders);
     }
@@ -178,7 +178,7 @@ public class TemplateUtils {
         List<Builder> inheritanceNewBuilders = new ArrayList<Builder>();
         int i = 0;
         for (Builder builder : newBuilders) {
-            if(inheritanceOldBuilders.size() > i) {
+            if(inheritanceOldBuilders.size() >= i) {
                 if (builder.getDescriptor() instanceof ConditionalBuilder.DescriptorImpl) {
                     inheritanceNewBuilders.add(inheritanceOldBuilders.get(i));
                     i++;
