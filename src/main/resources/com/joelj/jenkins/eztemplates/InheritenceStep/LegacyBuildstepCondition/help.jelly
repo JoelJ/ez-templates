@@ -1,0 +1,11 @@
+<div>
+	Used to retain backward compatibility... please use the 'Boolean condition'
+    The resolved value has to be <code>true</code> or <code>false</code> (where everything else then <code>true</code> is handled as <code>false</code>, case ignored).<br />
+    The following definitions are supported:
+    <ul>
+    	<li>fix value <code>true</code> or <code>false</code></li>
+    	<li>reference of a build parameter (e.g. <code>${DOIT}</code>)</li>
+    	<li>as TokenMacro consumer (install any plugin from the <a href="https://wiki.jenkins-ci.org/display/JENKINS/Token+Macro+Plugin">TokenMacro Producer List</a>)</li>
+    </ul>
+    With the checkbox it is possible to invert the resolved condition.
+</div>
