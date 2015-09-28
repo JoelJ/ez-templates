@@ -115,7 +115,7 @@ public class TemplateUtils {
             oldAxisList = matrixProject.getAxes();
         }
 
-        DescribableList<Builder, Descriptor<Builder>> oldbuilders = ((FreeStyleProject)implementationProject).getBuildersList();
+        DescribableList<Builder, Descriptor<Builder>> oldBuilders = ((FreeStyleProject)implementationProject).getBuildersList();
 
 
         implementationProject = synchronizeConfigFiles(implementationProject, templateProject);
@@ -160,44 +160,25 @@ public class TemplateUtils {
             PromotedBuildsTemplateUtils.addPromotions(implementationProject, templateProject);
         }
 
-        UpdateBuilders((FreeStyleProject) implementationProject, oldbuilders);
+        UpdateBuilders(implementationProject, oldBuilders);
 
         ProjectUtils.silentSave(implementationProject);
     }
 
-    private static void UpdateBuilders(FreeStyleProject implementationProject, DescribableList<Builder, Descriptor<Builder>> oldbuilders) throws IOException {
-        //DescribableList<Builder, Descriptor<Builder>> builders = ((FreeStyleProject)implementationProject).getBuildersList();
-        List<Builder> inheritanceOldBuilders = new ArrayList<Builder>();
+    private static void UpdateBuilders(AbstractProject implementationProject, DescribableList<Builder, Descriptor<Builder>> oldbuilders) throws IOException {
+        List<Builder> inheritanceOldBuilders = getChildJobBuilders(oldbuilders);
+        if(inheritanceOldBuilders == null || inheritanceOldBuilders.size() == 0)
+            return;
+        final DescribableList<Builder, Descriptor<Builder>>  newBuilders = ((FreeStyleProject)implementationProject).getBuildersList();
+        List<Builder> inheritanceNewBuilders = getBuildersForSync(newBuilders, inheritanceOldBuilders);
+        newBuilders.replaceBy(inheritanceNewBuilders);
+    }
 
-        for (Builder builder : oldbuilders) {
-//            if (builder.getDescriptor() instanceof SingleConditionalBuilder.SingleConditionalBuilderDescriptor) {
-//                inheritanceOldBuilders.add(builder);
-//                continue;
-//            }
-            if (builder.getDescriptor() instanceof ConditionalBuilder.DescriptorImpl) {
-                inheritanceOldBuilders.add(builder);
-                continue;
-            }
-            if (builder.getDescriptor() instanceof BuilderChain.DescriptorImpl) {
-                inheritanceOldBuilders.add(builder);
-                continue;
-            }
-            if (!(builder.getDescriptor() instanceof BuildStepDescriptor)) {
-                inheritanceOldBuilders.add(builder);
-                continue;
-            }
-        }
-
+    private static List<Builder> getBuildersForSync(DescribableList<Builder, Descriptor<Builder>> newBuilders, List<Builder> inheritanceOldBuilders) {
         List<Builder> inheritanceNewBuilders = new ArrayList<Builder>();
-        final DescribableList<Builder, Descriptor<Builder>>  newBuilders = implementationProject.getBuildersList();
         int i = 0;
         for (Builder builder : newBuilders) {
             if(inheritanceOldBuilders.size() > i) {
-//                if (builder.getDescriptor() instanceof SingleConditionalBuilder.SingleConditionalBuilderDescriptor) {
-//                    inheritanceNewBuilders.add(inheritanceOldBuilders.get(i));
-//                    i++;
-//                    continue;
-//                }
                 if (builder.getDescriptor() instanceof ConditionalBuilder.DescriptorImpl) {
                     inheritanceNewBuilders.add(inheritanceOldBuilders.get(i));
                     i++;
@@ -216,7 +197,27 @@ public class TemplateUtils {
                 inheritanceNewBuilders.add(builder);
             }
         }
-        newBuilders.replaceBy(inheritanceNewBuilders);
+        return inheritanceNewBuilders;
+    }
+
+    private static List<Builder> getChildJobBuilders(DescribableList<Builder, Descriptor<Builder>> oldbuilders) {
+        List<Builder> inheritanceOldBuilders = new ArrayList<Builder>();
+
+        for (Builder builder : oldbuilders) {
+            if (builder.getDescriptor() instanceof ConditionalBuilder.DescriptorImpl) {
+                inheritanceOldBuilders.add(builder);
+                continue;
+            }
+            if (builder.getDescriptor() instanceof BuilderChain.DescriptorImpl) {
+                inheritanceOldBuilders.add(builder);
+                continue;
+            }
+            if (!(builder.getDescriptor() instanceof BuildStepDescriptor)) {
+                inheritanceOldBuilders.add(builder);
+                continue;
+            }
+        }
+        return inheritanceOldBuilders;
     }
 
     /**
