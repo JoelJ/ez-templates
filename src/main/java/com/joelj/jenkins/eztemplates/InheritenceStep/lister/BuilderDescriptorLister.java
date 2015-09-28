@@ -33,6 +33,6 @@ import hudson.tasks.BuildStep;
 import java.util.List;
 
 public interface BuilderDescriptorLister extends Describable<BuilderDescriptorLister>, ExtensionPoint {
-    public List<? extends Descriptor<? extends BuildStep>> getAllowedBuilders(AbstractProject<?, ?> project);
+    List<? extends Descriptor<? extends BuildStep>> getAllowedBuilders(AbstractProject<?, ?> project);
 }
 

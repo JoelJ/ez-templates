@@ -35,6 +35,7 @@ import hudson.tasks.BuildStep;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Builder;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkins_ci.plugins.run_condition.BuildStepRunner;
 import org.jenkins_ci.plugins.run_condition.RunCondition;
@@ -42,7 +43,6 @@ import org.jenkins_ci.plugins.run_condition.core.AlwaysRun;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -123,7 +123,7 @@ public class SingleConditionalBuilder extends Builder implements DependecyDeclar
         }
 
         public static DescriptorExtensionList<BuilderDescriptorLister, Descriptor<BuilderDescriptorLister>> getAllBuilderDescriptorListers() {
-            return Hudson.getInstance().<BuilderDescriptorLister, Descriptor<BuilderDescriptorLister>>getDescriptorList(BuilderDescriptorLister.class);
+            return Jenkins.getInstance().<BuilderDescriptorLister, Descriptor<BuilderDescriptorLister>>getDescriptorList(BuilderDescriptorLister.class);
         }
 
         public BuilderDescriptorLister getBuilderLister() {
@@ -155,7 +155,7 @@ public class SingleConditionalBuilder extends Builder implements DependecyDeclar
         }
 
         public BuildStepRunner.BuildStepRunnerDescriptor getDefaultBuildStepRunner() {
-            return Hudson.getInstance().getDescriptorByType(BuildStepRunner.Fail.FailDescriptor.class);
+            return Jenkins.getInstance().getDescriptorByType(BuildStepRunner.Fail.FailDescriptor.class);
         }
 
         public List<? extends Descriptor<? extends RunCondition>> getRunConditions() {
@@ -163,7 +163,7 @@ public class SingleConditionalBuilder extends Builder implements DependecyDeclar
         }
 
         public RunCondition.RunConditionDescriptor getDefaultRunCondition() {
-            return Hudson.getInstance().getDescriptorByType(AlwaysRun.AlwaysRunDescriptor.class);
+            return Jenkins.getInstance().getDescriptorByType(AlwaysRun.AlwaysRunDescriptor.class);
         }
 
         public List<? extends Descriptor<? extends BuildStep>> getAllowedBuilders(AbstractProject<?, ?> project) {

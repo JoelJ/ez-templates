@@ -31,12 +31,11 @@ import com.joelj.jenkins.eztemplates.Messages;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
-import hudson.model.Hudson;
 import hudson.tasks.BuildStep;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
-
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +63,7 @@ public class DefaultBuilderDescriptorLister implements BuilderDescriptorLister {
             if (!(descriptor instanceof BuildStepDescriptor)) {
                 continue;
             }
-            BuildStepDescriptor<? extends Builder> buildStepDescriptor = (BuildStepDescriptor) descriptor;
+            BuildStepDescriptor buildStepDescriptor = (BuildStepDescriptor) descriptor;
             if (buildStepDescriptor.isApplicable(project.getClass()) && hasDbc(buildStepDescriptor.clazz)) {
                 builders.add(buildStepDescriptor);
             }
@@ -73,7 +72,7 @@ public class DefaultBuilderDescriptorLister implements BuilderDescriptorLister {
     }
 
     public DescriptorImpl getDescriptor() {
-        return Hudson.getInstance().getDescriptorByType(DescriptorImpl.class);
+        return Jenkins.getInstance().getDescriptorByType(DescriptorImpl.class);
     }
 
     private boolean hasDbc(final Class<?> clazz) {
@@ -91,7 +90,5 @@ public class DefaultBuilderDescriptorLister implements BuilderDescriptorLister {
         public String getDisplayName() {
             return Messages.defaultBuilderDescriptor_displayName();
         }
-
     }
-
 }
