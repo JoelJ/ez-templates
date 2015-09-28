@@ -2,8 +2,7 @@ package com.joelj.jenkins.eztemplates.utils;
 
 import com.joelj.jenkins.eztemplates.InheritenceStep.BuilderChain;
 import com.joelj.jenkins.eztemplates.InheritenceStep.ConditionalBuilder;
-import com.joelj.jenkins.eztemplates.InheritenceStep.lister.DefaultBuilderDescriptorLister;
-import com.joelj.jenkins.eztemplates.InheritenceStep.singlestep.SingleConditionalBuilder;
+//import com.joelj.jenkins.eztemplates.InheritenceStep.SingleConditionalBuilder;
 import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
 import com.joelj.jenkins.eztemplates.TemplateProperty;
 import com.joelj.jenkins.eztemplates.promotedbuilds.PromotedBuildsTemplateUtils;
@@ -11,7 +10,6 @@ import hudson.matrix.AxisList;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
 import hudson.model.*;
-import hudson.tasks.BuildStep;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.triggers.Trigger;
@@ -21,8 +19,6 @@ import hudson.security.*;
 import hudson.scm.SCM;
 import hudson.util.DescribableList;
 import jenkins.model.Jenkins;
-import org.jenkins_ci.plugins.run_condition.BuildStepRunner;
-import org.jenkins_ci.plugins.run_condition.core.AlwaysRun;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -174,10 +170,10 @@ public class TemplateUtils {
         List<Builder> inheritanceOldBuilders = new ArrayList<Builder>();
 
         for (Builder builder : oldbuilders) {
-            if (builder.getDescriptor() instanceof SingleConditionalBuilder.SingleConditionalBuilderDescriptor) {
-                inheritanceOldBuilders.add(builder);
-                continue;
-            }
+//            if (builder.getDescriptor() instanceof SingleConditionalBuilder.SingleConditionalBuilderDescriptor) {
+//                inheritanceOldBuilders.add(builder);
+//                continue;
+//            }
             if (builder.getDescriptor() instanceof ConditionalBuilder.DescriptorImpl) {
                 inheritanceOldBuilders.add(builder);
                 continue;
@@ -197,11 +193,11 @@ public class TemplateUtils {
         int i = 0;
         for (Builder builder : newBuilders) {
             if(inheritanceOldBuilders.size() > i) {
-                if (builder.getDescriptor() instanceof SingleConditionalBuilder.SingleConditionalBuilderDescriptor) {
-                    inheritanceNewBuilders.add(inheritanceOldBuilders.get(i));
-                    i++;
-                    continue;
-                }
+//                if (builder.getDescriptor() instanceof SingleConditionalBuilder.SingleConditionalBuilderDescriptor) {
+//                    inheritanceNewBuilders.add(inheritanceOldBuilders.get(i));
+//                    i++;
+//                    continue;
+//                }
                 if (builder.getDescriptor() instanceof ConditionalBuilder.DescriptorImpl) {
                     inheritanceNewBuilders.add(inheritanceOldBuilders.get(i));
                     i++;

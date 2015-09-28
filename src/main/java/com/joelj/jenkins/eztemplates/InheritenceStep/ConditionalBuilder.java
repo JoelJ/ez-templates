@@ -23,8 +23,8 @@
  */
 package com.joelj.jenkins.eztemplates.InheritenceStep;
 
-import com.joelj.jenkins.eztemplates.InheritenceStep.singlestep.SingleConditionalBuilder;
-import com.joelj.jenkins.eztemplates.InheritenceStep.singlestep.SingleConditionalBuilder.SingleConditionalBuilderDescriptor;
+//import com.joelj.jenkins.eztemplates.InheritenceStep.SingleConditionalBuilder.SingleConditionalBuilderDescriptor;
+import com.joelj.jenkins.eztemplates.InheritenceStep.lister.DefaultBuilderDescriptorLister;
 import com.joelj.jenkins.eztemplates.Messages;
 import hudson.DescriptorExtensionList;
 import hudson.Extension;
@@ -111,12 +111,13 @@ public class ConditionalBuilder extends Builder implements DependecyDeclarer {
     }
 
     @Extension
-    public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
+    public static final class DescriptorImpl  extends BuildStepDescriptor<Builder> {
 
         public boolean isApplicable(final Class<? extends AbstractProject> aClass) {
             // No need for aggregation for matrix build with MatrixAggregatable
             // this is only supported for: {@link Publisher}, {@link JobProperty}, {@link BuildWrapper}
-            return !SingleConditionalBuilder.PROMOTION_JOB_TYPE.equals(aClass.getCanonicalName());
+            //return !SingleConditionalBuilder.PROMOTION_JOB_TYPE.equals(aClass.getCanonicalName());
+            return true;
         }
 
         /**
@@ -133,9 +134,10 @@ public class ConditionalBuilder extends Builder implements DependecyDeclarer {
         }
 
         public List<? extends Descriptor<? extends BuildStep>> getBuilderDescriptors(AbstractProject<?, ?> project) {
-            final SingleConditionalBuilderDescriptor singleConditionalStepDescriptor = Hudson.getInstance().getDescriptorByType(
-                    SingleConditionalBuilderDescriptor.class);
-            return singleConditionalStepDescriptor.getAllowedBuilders(project);
+
+//  final SingleConditionalBuilderDescriptor singleConditionalStepDescriptor = Hudson.getInstance().getDescriptorByType(
+//                    SingleConditionalBuilderDescriptor.class);
+            return new DefaultBuilderDescriptorLister().getAllowedBuilders(project);
         }
 
         public DescriptorExtensionList<BuildStepRunner, BuildStepRunner.BuildStepRunnerDescriptor> getBuildStepRunners() {
