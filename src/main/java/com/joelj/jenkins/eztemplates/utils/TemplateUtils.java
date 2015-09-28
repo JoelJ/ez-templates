@@ -1,5 +1,9 @@
 package com.joelj.jenkins.eztemplates.utils;
 
+import com.joelj.jenkins.eztemplates.InheritenceStep.BuilderChain;
+import com.joelj.jenkins.eztemplates.InheritenceStep.ConditionalBuilder;
+import com.joelj.jenkins.eztemplates.InheritenceStep.lister.DefaultBuilderDescriptorLister;
+import com.joelj.jenkins.eztemplates.InheritenceStep.singlestep.SingleConditionalBuilder;
 import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
 import com.joelj.jenkins.eztemplates.TemplateProperty;
 import com.joelj.jenkins.eztemplates.promotedbuilds.PromotedBuildsTemplateUtils;
@@ -7,12 +11,18 @@ import hudson.matrix.AxisList;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
 import hudson.model.*;
+import hudson.tasks.BuildStep;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.CopyOnWriteList;
 import hudson.security.*;
 import hudson.scm.SCM;
+import hudson.util.DescribableList;
 import jenkins.model.Jenkins;
+import org.jenkins_ci.plugins.run_condition.BuildStepRunner;
+import org.jenkins_ci.plugins.run_condition.core.AlwaysRun;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -20,11 +30,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
+import hudson.model.Descriptor;
+import hudson.model.FreeStyleProject;
 
 public class TemplateUtils {
     private static final Logger LOG = Logger.getLogger("ez-templates");
@@ -110,6 +119,9 @@ public class TemplateUtils {
             oldAxisList = matrixProject.getAxes();
         }
 
+        DescribableList<Builder, Descriptor<Builder>> oldbuilders = ((FreeStyleProject)implementationProject).getBuildersList();
+
+
         implementationProject = synchronizeConfigFiles(implementationProject, templateProject);
 
         // Reverse all the fields that we've marked as "Don't Sync" so that they appear that they haven't changed.
@@ -150,9 +162,65 @@ public class TemplateUtils {
 
         if (Jenkins.getInstance().getPlugin("promoted-builds") != null) {
             PromotedBuildsTemplateUtils.addPromotions(implementationProject, templateProject);
-        } 
+        }
+
+        UpdateBuilders((FreeStyleProject) implementationProject, oldbuilders);
 
         ProjectUtils.silentSave(implementationProject);
+    }
+
+    private static void UpdateBuilders(FreeStyleProject implementationProject, DescribableList<Builder, Descriptor<Builder>> oldbuilders) throws IOException {
+        //DescribableList<Builder, Descriptor<Builder>> builders = ((FreeStyleProject)implementationProject).getBuildersList();
+        List<Builder> inheritanceOldBuilders = new ArrayList<Builder>();
+
+        for (Builder builder : oldbuilders) {
+            if (builder.getDescriptor() instanceof SingleConditionalBuilder.SingleConditionalBuilderDescriptor) {
+                inheritanceOldBuilders.add(builder);
+                continue;
+            }
+            if (builder.getDescriptor() instanceof ConditionalBuilder.DescriptorImpl) {
+                inheritanceOldBuilders.add(builder);
+                continue;
+            }
+            if (builder.getDescriptor() instanceof BuilderChain.DescriptorImpl) {
+                inheritanceOldBuilders.add(builder);
+                continue;
+            }
+            if (!(builder.getDescriptor() instanceof BuildStepDescriptor)) {
+                inheritanceOldBuilders.add(builder);
+                continue;
+            }
+        }
+
+        List<Builder> inheritanceNewBuilders = new ArrayList<Builder>();
+        final DescribableList<Builder, Descriptor<Builder>>  newBuilders = implementationProject.getBuildersList();
+        int i = 0;
+        for (Builder builder : newBuilders) {
+            if(inheritanceOldBuilders.size() > i) {
+                if (builder.getDescriptor() instanceof SingleConditionalBuilder.SingleConditionalBuilderDescriptor) {
+                    inheritanceNewBuilders.add(inheritanceOldBuilders.get(i));
+                    i++;
+                    continue;
+                }
+                if (builder.getDescriptor() instanceof ConditionalBuilder.DescriptorImpl) {
+                    inheritanceNewBuilders.add(inheritanceOldBuilders.get(i));
+                    i++;
+                    continue;
+                }
+                if (builder.getDescriptor() instanceof BuilderChain.DescriptorImpl) {
+                    inheritanceNewBuilders.add(inheritanceOldBuilders.get(i));
+                    i++;
+                    continue;
+                }
+                if (!(builder.getDescriptor() instanceof BuildStepDescriptor)) {
+                    inheritanceNewBuilders.add(inheritanceOldBuilders.get(i));
+                    i++;
+                    continue;
+                }
+                inheritanceNewBuilders.add(builder);
+            }
+        }
+        newBuilders.replaceBy(inheritanceNewBuilders);
     }
 
     /**
