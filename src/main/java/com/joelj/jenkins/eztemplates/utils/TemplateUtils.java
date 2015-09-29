@@ -1,5 +1,7 @@
 package com.joelj.jenkins.eztemplates.utils;
 
+import com.joelj.jenkins.eztemplates.InheritenceStep.BuilderChain;
+import com.joelj.jenkins.eztemplates.InheritenceStep.ConditionalBuilder;
 import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
 import com.joelj.jenkins.eztemplates.TemplateProperty;
 import com.joelj.jenkins.eztemplates.promotedbuilds.PromotedBuildsTemplateUtils;
@@ -7,11 +9,14 @@ import hudson.matrix.AxisList;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
 import hudson.model.*;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.CopyOnWriteList;
 import hudson.security.*;
 import hudson.scm.SCM;
+import hudson.util.DescribableList;
 import jenkins.model.Jenkins;
 
 import javax.xml.transform.Source;
@@ -20,10 +25,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class TemplateUtils {
@@ -109,6 +111,7 @@ public class TemplateUtils {
             MatrixProject matrixProject = (MatrixProject) implementationProject;
             oldAxisList = matrixProject.getAxes();
         }
+        DescribableList<Builder, Descriptor<Builder>> oldBuilders = ((Project)implementationProject).getBuildersList();
 
         implementationProject = synchronizeConfigFiles(implementationProject, templateProject);
 
@@ -150,9 +153,41 @@ public class TemplateUtils {
 
         if (Jenkins.getInstance().getPlugin("promoted-builds") != null) {
             PromotedBuildsTemplateUtils.addPromotions(implementationProject, templateProject);
-        } 
+        }
 
+        UpdateBuilders(implementationProject, oldBuilders);
         ProjectUtils.silentSave(implementationProject);
+    }
+
+    private static void UpdateBuilders(AbstractProject implementationProject, DescribableList<Builder, Descriptor<Builder>> oldbuilders) throws IOException {
+        List<Builder> inheritanceOldBuilders = new ArrayList<Builder>();
+        for (Builder builder : oldbuilders) {
+            if (builder instanceof ConditionalBuilder || builder instanceof BuilderChain) {
+                inheritanceOldBuilders.add(builder);
+            }
+        }
+        //List<Builder> inheritanceOldBuilders = getChildJobBuilders(oldbuilders);
+        if(inheritanceOldBuilders == null || inheritanceOldBuilders.size() == 0)
+            return;
+        final DescribableList<Builder, Descriptor<Builder>>  newBuilders = ((Project)implementationProject).getBuildersList();
+        List<Builder> inheritanceNewBuilders = getBuildersForSync(newBuilders, inheritanceOldBuilders);
+        newBuilders.replaceBy(inheritanceNewBuilders);
+    }
+
+    private static List<Builder> getBuildersForSync(DescribableList<Builder, Descriptor<Builder>> newBuilders, List<Builder> inheritanceOldBuilders) {
+        List<Builder> inheritanceNewBuilders = new ArrayList<Builder>();
+        int i = 0;
+        for (Builder builder : newBuilders) {
+            if(inheritanceOldBuilders.size() >= i) {
+                if (builder instanceof ConditionalBuilder || builder instanceof BuilderChain) {
+                    inheritanceNewBuilders.add(inheritanceOldBuilders.get(i));
+                    i++;
+                    continue;
+                }
+                inheritanceNewBuilders.add(builder);
+            }
+        }
+        return inheritanceNewBuilders;
     }
 
     /**
