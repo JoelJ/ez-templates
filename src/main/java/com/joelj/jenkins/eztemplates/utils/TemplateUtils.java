@@ -1,7 +1,7 @@
 package com.joelj.jenkins.eztemplates.utils;
 
 import com.joelj.jenkins.eztemplates.InheritenceStep.BuilderChain;
-import com.joelj.jenkins.eztemplates.InheritenceStep.ConditionalBuilder;
+import com.joelj.jenkins.eztemplates.InheritenceStep.EzTemplateBuilder;
 import com.joelj.jenkins.eztemplates.TemplateImplementationProperty;
 import com.joelj.jenkins.eztemplates.TemplateProperty;
 import com.joelj.jenkins.eztemplates.promotedbuilds.PromotedBuildsTemplateUtils;
@@ -9,7 +9,6 @@ import hudson.matrix.AxisList;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
 import hudson.model.*;
-import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -162,7 +161,7 @@ public class TemplateUtils {
     private static void UpdateBuilders(AbstractProject implementationProject, DescribableList<Builder, Descriptor<Builder>> oldbuilders) throws IOException {
         List<Builder> inheritanceOldBuilders = new ArrayList<Builder>();
         for (Builder builder : oldbuilders) {
-            if (builder instanceof ConditionalBuilder || builder instanceof BuilderChain) {
+            if (builder instanceof EzTemplateBuilder || builder instanceof BuilderChain) {
                 inheritanceOldBuilders.add(builder);
             }
         }
@@ -179,7 +178,7 @@ public class TemplateUtils {
         int i = 0;
         for (Builder builder : newBuilders) {
             if(inheritanceOldBuilders.size() >= i) {
-                if (builder instanceof ConditionalBuilder || builder instanceof BuilderChain) {
+                if (builder instanceof EzTemplateBuilder || builder instanceof BuilderChain) {
                     inheritanceNewBuilders.add(inheritanceOldBuilders.get(i));
                     i++;
                     continue;

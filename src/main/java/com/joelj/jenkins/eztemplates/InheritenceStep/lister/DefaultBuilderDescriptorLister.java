@@ -25,7 +25,7 @@
 package com.joelj.jenkins.eztemplates.InheritenceStep.lister;
 
 import com.joelj.jenkins.eztemplates.InheritenceStep.BuilderChain;
-import com.joelj.jenkins.eztemplates.InheritenceStep.ConditionalBuilder;
+import com.joelj.jenkins.eztemplates.InheritenceStep.EzTemplateBuilder;
 import com.joelj.jenkins.eztemplates.Messages;
 import hudson.Extension;
 import hudson.model.AbstractProject;
@@ -53,7 +53,7 @@ public class DefaultBuilderDescriptorLister implements BuilderDescriptorLister {
         if (project == null)
             return builders;
         for (Descriptor<Builder> descriptor : Builder.all()) {
-            if (descriptor instanceof ConditionalBuilder.DescriptorImpl) {
+            if (descriptor instanceof EzTemplateBuilder.DescriptorImpl) {
                 continue;
             }
             if (descriptor instanceof BuilderChain.DescriptorImpl) {

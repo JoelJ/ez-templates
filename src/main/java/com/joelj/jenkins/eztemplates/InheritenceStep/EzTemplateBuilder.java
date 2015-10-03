@@ -51,14 +51,14 @@ import java.util.logging.Logger;
  * @author Dominik Bartholdi (imod)
  * @author Chris Johnson (cjo9900)
  */
-public class ConditionalBuilder extends Builder implements DependecyDeclarer {
-    private static Logger log = Logger.getLogger(ConditionalBuilder.class.getName());
+public class EzTemplateBuilder extends Builder implements DependecyDeclarer {
+    private static Logger log = Logger.getLogger(EzTemplateBuilder.class.getName());
     private final BuildStepRunner runner;
     private RunCondition runCondition;
     private List<BuildStep> conditionalbuilders;
 
     @DataBoundConstructor
-    public ConditionalBuilder(RunCondition runCondition, final BuildStepRunner runner, List<BuildStep> conditionalbuilders) {
+    public EzTemplateBuilder(RunCondition runCondition, final BuildStepRunner runner, List<BuildStep> conditionalbuilders) {
         this.runner = runner;
         this.runCondition = runCondition;
         this.conditionalbuilders = conditionalbuilders;
