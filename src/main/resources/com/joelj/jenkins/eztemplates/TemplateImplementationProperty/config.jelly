@@ -36,6 +36,9 @@
 			<f:entry field="syncOwnership" title="${%Sync Ownership}">
 				<f:checkbox />
 			</f:entry>
-                </f:advanced>
+			<f:entry field="syncAssignedLabel" title="${%Sync Assigned Label}">
+				<f:checkbox default="true" />
+			</f:entry>
+		</f:advanced>
 	</f:optionalBlock>
 </j:jelly>
