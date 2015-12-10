@@ -101,6 +101,7 @@ public class TemplateUtils {
         Map<TriggerDescriptor, Trigger> oldTriggers = implementationProject.getTriggers();
         boolean shouldBeDisabled = implementationProject.isDisabled();
         String description = implementationProject.getDescription();
+        String displayName = implementationProject.getDisplayNameOrNull();
         AuthorizationMatrixProperty oldAuthMatrixProperty = (AuthorizationMatrixProperty) implementationProject.getProperty(AuthorizationMatrixProperty.class);
         SCM oldScm = (SCM) implementationProject.getScm();
         JobProperty oldOwnership = implementationProject.getProperty("com.synopsys.arc.jenkins.plugins.ownership.jobs.JobOwnerJobProperty");
@@ -119,6 +120,8 @@ public class TemplateUtils {
         //Set values that we wanted to keep via reflection to prevent infinite save recursion
         fixProperties(implementationProject, property, implementationIsTemplate);
         fixParameters(implementationProject, oldImplementationParameters);
+
+        ReflectionUtils.setFieldValue(AbstractItem.class, implementationProject, "displayName", displayName);
 
         if (!property.getSyncBuildTriggers()) {
             fixBuildTriggers(implementationProject, oldTriggers);
